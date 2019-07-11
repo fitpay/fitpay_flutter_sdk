@@ -1,0 +1,43 @@
+group 'com.example.fitpay_flutter_sdk'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.1'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 28
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+
+    }
+}
+
+dependencies {
+    api group: 'org.bitbucket.b_c', name: 'jose4j', version: '0.6.5'
+    api 'com.google.code.gson:gson:2.8.5'
+    api 'com.google.guava:guava:27.1-android'
+    api "com.nimbusds:nimbus-jose-jwt:7.1"
+}
