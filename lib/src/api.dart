@@ -35,8 +35,14 @@ class API {
 
   @protected
   final Map<String, PaymentDeviceConnector> paymentDeviceConnectors = {};
-  void registerPaymentConnector(PaymentDeviceConnector connector) =>
-      paymentDeviceConnectors[connector.platformDevice.deviceIdentifier] = connector;
+  void registerPaymentConnector(PaymentDeviceConnector connector) {
+    if (connector == null || connector.platformDevice == null) {
+      throw 'connector not registered, missing connector or platformDevice';
+    }
+
+    paymentDeviceConnectors[connector.platformDevice.deviceIdentifier] = connector;
+  }
+
   void removePaymentConnector(PaymentDeviceConnector connector) {
     paymentDeviceConnectors.removeWhere((candidateDeviceId, candidateConnector) {
       return candidateConnector == connector;
@@ -544,10 +550,12 @@ class API {
 
       if (response.statusCode == 201) {
         return Device.fromJson(jsonDecode(response.body));
+      } else {
+        throw response;
       }
+    } else {
+      throw 'no devices link available on user ${user?.userId}';
     }
-
-    return null;
   }
 
   Future<void> makeActive(Uri uri) async {
