@@ -704,3 +704,40 @@ const _$JsonPatchOpEnumMap = <JsonPatchOp, dynamic>{
   JsonPatchOp.remove: 'remove',
   JsonPatchOp.replace: 'replace'
 };
+
+PaymentDeviceInformation _$PaymentDeviceInformationFromJson(
+    Map<String, dynamic> json) {
+  return PaymentDeviceInformation(
+      manufacturerName: json['manufacturerName'] as String,
+      softwareRevision: json['softwareRevision'] as String,
+      firmwareRevision: json['firmwareRevision'] as String,
+      hardwareRevision: json['hardwareRevision'] as String,
+      modelNumber: json['modelNumber'] as String,
+      systemId: json['systemId'] as String,
+      deviceName: json['deviceName'] as String,
+      osName: json['osName'] as String,
+      countryCode: json['countryCode'] as String,
+      serialNumber: json['serialNumber'] as String,
+      deviceType: _$enumDecodeNullable(_$DeviceTypeEnumMap, json['deviceType']),
+      secureElement: json['secureElement'] == null
+          ? null
+          : SecureElement.fromJson(
+              json['secureElement'] as Map<String, dynamic>));
+}
+
+Map<String, dynamic> _$PaymentDeviceInformationToJson(
+        PaymentDeviceInformation instance) =>
+    <String, dynamic>{
+      'manufacturerName': instance.manufacturerName,
+      'softwareRevision': instance.softwareRevision,
+      'firmwareRevision': instance.firmwareRevision,
+      'hardwareRevision': instance.hardwareRevision,
+      'modelNumber': instance.modelNumber,
+      'systemId': instance.systemId,
+      'deviceName': instance.deviceName,
+      'osName': instance.osName,
+      'countryCode': instance.countryCode,
+      'serialNumber': instance.serialNumber,
+      'deviceType': _$DeviceTypeEnumMap[instance.deviceType],
+      'secureElement': instance.secureElement
+    };

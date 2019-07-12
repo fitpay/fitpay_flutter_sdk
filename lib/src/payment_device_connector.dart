@@ -271,33 +271,3 @@ abstract class PaymentDeviceConnector {
 
   void dispose() {}
 }
-
-class PaymentDeviceInformation {
-  final String manufacturerName;
-  final String softwareRevision;
-  final String firmwareRevision;
-  final String hardwareRevision;
-  final String modelNumber;
-  final String systemId;
-  final String deviceName;
-  final String osName;
-  final String countryCode;
-  final String serialNumber;
-  final DeviceType deviceType;
-
-  final SecureElement secureElement;
-
-  PaymentDeviceInformation(
-      {this.manufacturerName,
-      this.softwareRevision,
-      this.firmwareRevision,
-      this.hardwareRevision,
-      this.modelNumber,
-      this.systemId,
-      this.deviceName,
-      this.osName,
-      this.countryCode,
-      this.serialNumber,
-      this.deviceType,
-      this.secureElement});
-}

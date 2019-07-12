@@ -5,6 +5,9 @@ import 'package:convert/convert.dart';
 import 'package:fitpay_flutter_sdk/fitpay_flutter_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'hndx_images.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'hndx_models.g.dart';
 
 class HendricksBleDeviceDiscovered {
   ScanResult scanResult;
@@ -595,6 +598,7 @@ class HendricksApduResponse extends HndxResult {
   HendricksApduResponse(this.data);
 }
 
+@JsonSerializable(nullable: false)
 class HendricksDeviceInfo extends HndxResult {
   static const NRF_RESP_TAG = 0x24;
   static const NRF_SERIAL_TYPE = 0x00;
@@ -702,4 +706,6 @@ class HendricksDeviceInfo extends HndxResult {
       return null;
     }
   }
+
+  Map<String, dynamic> toJson() => _$HendricksDeviceInfoToJson(this);
 }
