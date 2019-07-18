@@ -67,13 +67,23 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       await super.connect(deviceId);
 
       // rx_ble requires a scan to be performed before a connection
-      print('hndx looking for and connecting to ${super.deviceId}');
+      print('hndx looking for and connecting to $deviceId');
 
       dispatch(PaymentDeviceState.connecting);
+
       await _connectStream?.cancel();
       await RxBle.stopScan();
+
+      print('hndx scanning for $deviceId');
       await RxBle.startScan(deviceId: deviceId).timeout(Duration(seconds: 30)).first;
-      _connectStream = RxBle.connect(deviceId, waitForDevice: true, autoConnect: false).listen((state) async {
+      print('hndx $deviceId found in scan, stopping scan');
+      await RxBle.stopScan();
+
+      if (Platform.isAndroid) {
+        print('hndx $deviceId scan stopped, forcing pause before attempting connect');
+        await Future.delayed(Duration(seconds: 3));
+      }
+      _connectStream = RxBle.connect(deviceId, waitForDevice: false, autoConnect: false).listen((state) async {
         print('hndx connection state change ${state.toString()}');
 
         switch (state) {
