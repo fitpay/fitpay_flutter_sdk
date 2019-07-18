@@ -83,6 +83,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
         print('hndx $deviceId scan stopped, forcing pause before attempting connect');
         await Future.delayed(Duration(seconds: 3));
       }
+
       _connectStream = RxBle.connect(deviceId, waitForDevice: false, autoConnect: false).listen((state) async {
         print('hndx connection state change ${state.toString()}');
 
