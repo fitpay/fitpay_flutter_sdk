@@ -75,7 +75,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       await RxBle.stopScan();
 
       print('hndx scanning for $deviceId');
-      await RxBle.startScan(deviceId: deviceId).timeout(Duration(seconds: 30)).first;
+      await RxBle.startScan(deviceId: deviceId).first;
       print('hndx $deviceId found in scan, stopping scan');
       await RxBle.stopScan();
 
