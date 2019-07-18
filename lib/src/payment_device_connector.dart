@@ -8,7 +8,13 @@ import 'dart:async';
 import 'models.dart';
 import 'package:semaphore/semaphore.dart';
 
-enum PaymentDeviceSyncState { starting, running, completed, error }
+enum PaymentDeviceSyncState {
+  starting,
+  running,
+  completed,
+  error,
+}
+
 enum PaymentDeviceState {
   scanning,
   connecting,
@@ -121,9 +127,14 @@ abstract class PaymentDeviceConnector {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       Uri commitsUrl = platformDevice?.links['commits'].toUri();
       Map<String, dynamic> commitsUrlParameters = Map.from(commitsUrl.queryParameters);
+      var lastCommitId = prefs.getString('last_commit_id');
+
       if (prefs.containsKey('last_commit_id')) {
-        commitsUrlParameters['lastCommitId'] = prefs.getString('last_commit_id');
+        commitsUrlParameters['commitsAfter'] = prefs.getString('last_commit_id');
       }
+
+      commitsUrlParameters['includeAcknowledged'] =
+          api?.config?.syncIncludeAcknowledgedCommits ?? true ? 'true' : 'false';
 
       commitsUrl = Uri(
         scheme: commitsUrl.scheme,
@@ -139,9 +150,9 @@ abstract class PaymentDeviceConnector {
         Page<Commit> commits = await api.getDeviceCommits(commitsUrl);
         if (commits == null || commits.results == null) return;
 
-        Queue<Future<bool>> tasks = Queue();
+        Queue<Function> tasks = Queue();
 
-        commits.results.forEach((commit) => tasks.add(Future<bool>(() async {
+        commits.results.forEach((commit) => tasks.add(() async {
               try {
                 await taskLock.acquire();
 
@@ -156,6 +167,7 @@ abstract class PaymentDeviceConnector {
                     await api.confirmApduPackage(commit, result);
                   }
 
+                  await prefs.setString('last_commit_id', commit.commitId);
                   return true;
                 } else {
                   CommitResponse response;
@@ -201,20 +213,24 @@ abstract class PaymentDeviceConnector {
               } finally {
                 taskLock.release();
               }
-            })));
+            }));
 
         // execute all the commits
         print('${tasks.length} commits to sync in this chunk');
+        bool successful = true;
         for (var i = 0; i < tasks.length; i++) {
           print('sync commit ${commits.results[i].commitType} ${i + 1}/${tasks.length} starting');
-          bool result = await tasks.elementAt(i);
+          bool result = await Future(tasks.elementAt(i));
           print('sync commit ${commits.results[i].commitType} ${i + 1}/${tasks.length} completed: $result');
+
           if (!result) {
+            print('sync commit ${commits.results[i].commitType} failed, breaking out of sync workflow');
+            successful = false;
             break;
           }
         }
 
-        if (commits.links.containsKey('next')) {
+        if (successful && commits.links.containsKey('next')) {
           commitsUrl = commits.links['next'].toUri();
         } else {
           commitsUrl = null;

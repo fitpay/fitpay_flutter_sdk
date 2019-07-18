@@ -173,6 +173,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       return Observable(_activateCreditCard(ed['creditCardId']))
           .where((state) => state.state == HndxCmdState.complete)
           .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
     }
@@ -193,6 +194,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
           .asyncExpand((card) => _sendCard(card))
           .where((state) => state.state == HndxCmdState.complete)
           .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
     }
@@ -207,6 +209,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       return Observable(_dectivateCreditCard(ed['creditCardId']))
           .where((state) => state.state == HndxCmdState.complete)
           .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
     }
@@ -221,6 +224,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       return Observable(_activateCreditCard(ed['creditCardId']))
           .where((state) => state.state == HndxCmdState.complete)
           .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
     }

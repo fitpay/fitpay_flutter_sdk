@@ -9,9 +9,31 @@ class ApiConfiguration {
   final String apiUrl;
   final String authUrl;
 
+  /*
+   * In the payment_device_connector.dart during a sync, the FitPay platform will typically exclude commits that
+   * have already been acknowledged by a client.  This is designed to protect against clients not gracefully
+   * handling replays of commits during a sync.  By setting this value to false, commits that have already been
+   * acknowleged either as successful or failed will never be replayed during a sync workflow as the platform
+   * will not return them when getting a list of commits.
+   * 
+   * By default this is set to true in this SDK, so clients listening for commits in their payment device connectors
+   * should be aware that commits maybe duplicated and that condition should be handled gracefully.  If replay
+   * isn't desired, set this value to false.
+   * 
+   * An example scenario:
+   * 
+   * Your payment device connector overrides the syncOnCreditCardActivated() method because you want to transmit some
+   * data to your remote wallet running on your wearable.  During the sync your device isn't connected so you report
+   * a failed commit back in your syncOnCreditCardActivated() method.  During the next sync this activated event will
+   * again be delivered to your implementation as a retry.  If this property is set to false, then you would never see
+   * the retry of the activated event.
+   */
+  final bool syncIncludeAcknowledgedCommits;
+
   const ApiConfiguration({
     this.apiUrl = 'https://api.fit-pay.com',
     this.authUrl = 'https://auth.fit-pay.com',
+    this.syncIncludeAcknowledgedCommits = true,
   });
 }
 
