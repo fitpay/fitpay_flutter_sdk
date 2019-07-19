@@ -31,7 +31,14 @@ class HendricksBleDeviceDiscovered {
 
 class HndxResult {}
 
-enum HndxCmdState { sending, waiting, receiving, complete, failed }
+enum HndxCmdState {
+  sending,
+  waiting,
+  receiving,
+  complete,
+  failed,
+  skipped,
+}
 
 class HndxBle {
   static const HNDX_SERVICE = "7DB2E9EA-ADF6-4F18-A110-61055D64B287";

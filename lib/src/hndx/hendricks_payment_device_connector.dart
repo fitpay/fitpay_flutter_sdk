@@ -171,8 +171,9 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
     if (ed.containsKey('creditCardId')) {
       return Observable(_activateCreditCard(ed['creditCardId']))
-          .where((state) => state.state == HndxCmdState.complete)
-          .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .where((state) => state.state == HndxCmdState.complete || state.state == HndxCmdState.skipped)
+          .map((state) => CommitResponse(
+              result: state.state == HndxCmdState.complete ? CommitResult.SUCCESS : CommitResult.SKIPPED))
           .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
@@ -191,9 +192,11 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       return Observable.fromFuture(api.getCreditCards())
           .expand((page) => page.results)
           .where((card) => card.creditCardId == creditCardId)
+          .defaultIfEmpty(null)
           .asyncExpand((card) => _sendCard(card))
-          .where((state) => state.state == HndxCmdState.complete)
-          .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .where((state) => state.state == HndxCmdState.complete || state.state == HndxCmdState.skipped)
+          .map((state) => CommitResponse(
+              result: state.state == HndxCmdState.complete ? CommitResult.SUCCESS : CommitResult.SKIPPED))
           .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
@@ -207,8 +210,9 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
     Map<String, dynamic> ed = await api.encryptor.decrypt(commit.encryptedData);
     if (ed.containsKey('creditCardId')) {
       return Observable(_dectivateCreditCard(ed['creditCardId']))
-          .where((state) => state.state == HndxCmdState.complete)
-          .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .where((state) => state.state == HndxCmdState.complete || state.state == HndxCmdState.skipped)
+          .map((state) => CommitResponse(
+              result: state.state == HndxCmdState.complete ? CommitResult.SUCCESS : CommitResult.SKIPPED))
           .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
@@ -222,8 +226,9 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
     Map<String, dynamic> ed = await api.encryptor.decrypt(commit.encryptedData);
     if (ed.containsKey('creditCardId')) {
       return Observable(_activateCreditCard(ed['creditCardId']))
-          .where((state) => state.state == HndxCmdState.complete)
-          .map((state) => CommitResponse(result: CommitResult.SUCCESS))
+          .where((state) => state.state == HndxCmdState.complete || state.state == HndxCmdState.skipped)
+          .map((state) => CommitResponse(
+              result: state.state == HndxCmdState.complete ? CommitResult.SUCCESS : CommitResult.SKIPPED))
           .onErrorReturn(CommitResponse(result: CommitResult.FAILED))
           .first
           .timeout(Duration(seconds: 30), onTimeout: () => CommitResponse(result: CommitResult.FAILED));
@@ -280,20 +285,33 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   }
 
   Stream<HndxResultState> _activateCreditCard(String creditCardId) async* {
+    var foundCard = false;
     var oid = await _findHndxOidForCreditCard(creditCardId);
     if (oid != null) {
+      foundCard = true;
       yield* _sendCommand(HndxCategoryUtils.getActivateCommand(oid));
     } else {
       Page<CreditCard> cards = await api.getCreditCards();
       for (CreditCard card in cards.results) {
         if (card.creditCardId == creditCardId) {
+          foundCard = true;
           yield* _sendCard(card);
         }
       }
     }
+
+    // card was deleted
+    if (!foundCard) {
+      yield HndxResultState(state: HndxCmdState.skipped);
+    }
   }
 
   Stream<HndxResultState> _sendCard(CreditCard card) async* {
+    if (card == null) {
+      yield HndxResultState(state: HndxCmdState.skipped);
+      return;
+    }
+
     var oid = await _findHndxOidForCreditCard(card.creditCardId);
     HndxAddCardData c = await HndxCardUtils.addCardCmd(
       api,
@@ -310,7 +328,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
     if (oid != null) {
       yield* _sendCommand(HndxCategoryUtils.getDeactivateCommand(oid));
     } else {
-      yield (HndxResultState(state: HndxCmdState.complete));
+      yield (HndxResultState(state: HndxCmdState.skipped));
     }
   }
 

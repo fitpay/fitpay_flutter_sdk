@@ -21,6 +21,8 @@ class API {
   final StreamController<FitPayEvent> _outsideSseController;
   Stream<FitPayEvent> _outsideSseStream;
   Stream<FitPayEvent> _sse;
+  List<StreamSubscription<dynamic>> _sseSubscriptions = [];
+
   User _user;
 
   API() : this._outsideSseController = new StreamController();
@@ -77,6 +79,9 @@ class API {
 
         encryptedSse = await EventSource.connect(_user.links['eventStream'].href);
 
+        encryptedSse.listen((data) => print('data: ${data.toString()}'),
+            onError: (err) => print('fucking sse rror: ${err.toString()}'));
+
         _sse = encryptedSse
             .asBroadcastStream()
             .asyncMap((event) => _encryptor.decrypt(event.data))
@@ -84,16 +89,16 @@ class API {
             .asBroadcastStream();
 
         // create a SYNC listening to fire sync's at payment device connectors
-        _sse
+        _sseSubscriptions.add(_sse
             .where((event) => event.type == 'SYNC')
             .map((event) => SyncRequest.fromJson(event.payload))
-            .listen((syncRequest) => deliverSyncToPaymentDeviceConnector(syncRequest: syncRequest));
+            .listen((syncRequest) => deliverSyncToPaymentDeviceConnector(syncRequest: syncRequest)));
 
         // create a listeners that publishes to outside listeners
-        _sse.listen((event) {
+        _sseSubscriptions.add(_sse.listen((event) {
           print('sse event received ${event.type}, deliverying to subscribers');
           _outsideSseController.add(event);
-        });
+        }));
       }
     }
   }
@@ -137,7 +142,16 @@ class API {
 
   Future<void> dispose() async {
     _user = null;
-    encryptedSse?.client?.close();
+    _sseSubscriptions.forEach((subscription) async => await subscription.cancel());
+    _sseSubscriptions.clear();
+
+    try {
+      encryptedSse?.client?.close();
+    } catch (err) {
+      print('error closing sse stream, ignoring: ${err.toString()}');
+      // ignored
+    }
+
     encryptedSse = null;
     paymentDeviceConnectors.values.forEach((c) async => c.dispose());
     paymentDeviceConnectors.clear();
