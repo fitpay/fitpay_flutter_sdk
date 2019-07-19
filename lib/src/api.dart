@@ -22,6 +22,8 @@ class API {
   Stream<FitPayEvent> _outsideSseStream;
   Stream<FitPayEvent> _sse;
   List<StreamSubscription<dynamic>> _sseSubscriptions = [];
+  int _lastSseStreamHeartbeatTs = 0;
+  Timer _sseStreamHeartbeatWatchdog;
 
   User _user;
 
@@ -76,31 +78,61 @@ class API {
         // String eventsUrl = template.expand({
         //   'events': ['SYNC']
         // });
+        await _connectSseStream();
 
-        encryptedSse = await EventSource.connect(_user.links['eventStream'].href);
-
-        // TODO: Implement a reconnect onError
-        encryptedSse.listen((data) {}, onError: (err) => print('sse stream error: ${err.toString()}'));
-
-        _sse = encryptedSse
-            .asBroadcastStream()
-            .asyncMap((event) => _encryptor.decrypt(event.data))
-            .map<FitPayEvent>((event) => FitPayEvent.fromJson(event))
-            .asBroadcastStream();
-
-        // create a SYNC listening to fire sync's at payment device connectors
-        _sseSubscriptions.add(_sse
-            .where((event) => event.type == 'SYNC')
-            .map((event) => SyncRequest.fromJson(event.payload))
-            .listen((syncRequest) => deliverSyncToPaymentDeviceConnector(syncRequest: syncRequest)));
-
-        // create a listeners that publishes to outside listeners
-        _sseSubscriptions.add(_sse.listen((event) {
-          print('sse event received ${event.type}, deliverying to subscribers');
-          _outsideSseController.add(event);
-        }));
+        _sseStreamHeartbeatWatchdog?.cancel();
+        _sseStreamHeartbeatWatchdog = Timer.periodic(Duration(seconds: 5), (_) async {
+          if (_user != null && (DateTime.now().millisecondsSinceEpoch - _lastSseStreamHeartbeatTs) > 60000) {
+            print(
+                'time since last stream heartbeat: ${DateTime.now().millisecondsSinceEpoch - _lastSseStreamHeartbeatTs}ms exceeds the limit, refreshing the SSE subscription');
+            _user = await getUser(forceRefresh: true);
+            await _disconnectSseStream();
+            await _connectSseStream();
+          }
+        });
       }
     }
+  }
+
+  Future<void> _disconnectSseStream() async {
+    _sseSubscriptions.forEach((subscription) async => await subscription.cancel());
+    _sseSubscriptions.clear();
+
+    try {
+      encryptedSse?.client?.close();
+    } catch (err) {
+      print('error closing sse stream, ignoring: ${err.toString()}');
+      // ignored
+    }
+
+    encryptedSse = null;
+  }
+
+  Future<void> _connectSseStream() async {
+    encryptedSse = await EventSource.connect(_user.links['eventStream'].href);
+
+    _sse = encryptedSse
+        .asBroadcastStream()
+        .asyncMap((event) => _encryptor.decrypt(event.data))
+        .map<FitPayEvent>((event) => FitPayEvent.fromJson(event))
+        .asBroadcastStream();
+
+    // create a SYNC listening to fire sync's at payment device connectors
+    _sseSubscriptions.add(_sse
+        .where((event) => event.type == 'SYNC')
+        .map((event) => SyncRequest.fromJson(event.payload))
+        .listen((syncRequest) => deliverSyncToPaymentDeviceConnector(syncRequest: syncRequest)));
+
+    // create a listeners that publishes to outside listeners
+    _sseSubscriptions.add(_sse.listen((event) {
+      print('sse event received ${event.type}, deliverying to subscribers');
+      _outsideSseController.add(event);
+    }));
+
+    // heartbeats
+    _sseSubscriptions.add(_sse
+        .where((event) => event.type == 'STREAM_HEARTBEAT' || event.type == 'STREAM_CONNECTED')
+        .listen((syncRequest) => _lastSseStreamHeartbeatTs = DateTime.now().millisecondsSinceEpoch));
   }
 
   void deliverSyncToPaymentDeviceConnector({SyncRequest syncRequest}) {
@@ -142,17 +174,7 @@ class API {
 
   Future<void> dispose() async {
     _user = null;
-    _sseSubscriptions.forEach((subscription) async => await subscription.cancel());
-    _sseSubscriptions.clear();
-
-    try {
-      encryptedSse?.client?.close();
-    } catch (err) {
-      print('error closing sse stream, ignoring: ${err.toString()}');
-      // ignored
-    }
-
-    encryptedSse = null;
+    await _disconnectSseStream();
     paymentDeviceConnectors.values.forEach((c) async => c.dispose());
     paymentDeviceConnectors.clear();
     _previousSyncRequests = null;
