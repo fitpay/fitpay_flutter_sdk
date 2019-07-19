@@ -79,8 +79,8 @@ class API {
 
         encryptedSse = await EventSource.connect(_user.links['eventStream'].href);
 
-        encryptedSse.listen((data) => print('data: ${data.toString()}'),
-            onError: (err) => print('fucking sse rror: ${err.toString()}'));
+        // TODO: Implement a reconnect onError
+        encryptedSse.listen((data) {}, onError: (err) => print('sse stream error: ${err.toString()}'));
 
         _sse = encryptedSse
             .asBroadcastStream()
