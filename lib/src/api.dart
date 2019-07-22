@@ -11,6 +11,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_account.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_transaction.dart';
 import 'package:fitpay_flutter_sdk/src/mock_funding_source.dart';
+import 'package:http_retry/http_retry.dart';
 
 class API {
   AccessToken _accessToken;
@@ -24,6 +25,12 @@ class API {
   List<StreamSubscription<dynamic>> _sseSubscriptions = [];
   int _lastSseStreamHeartbeatTs = 0;
   Timer _sseStreamHeartbeatWatchdog;
+
+  http.Client _httpRetryClient = new RetryClient(new http.Client(),
+      onRetry: (baseRequest, baseResponse, retryCount) => print(
+          'retry ${baseRequest.method} ${baseRequest.url.toString()} with original response ${baseResponse.statusCode}, retry count: $retryCount'),
+      when: (baseResponse) => baseResponse.statusCode >= 500 && baseResponse.statusCode <= 599);
+  http.Client _httpClient = new http.Client();
 
   User _user;
 
@@ -243,7 +250,7 @@ class API {
 
   Future<User> getUser({bool forceRefresh = false}) async {
     if (_user == null || forceRefresh) {
-      var response = await http.get(
+      var response = await _httpRetryClient.get(
         '${_config.apiUrl}/users/${_accessToken.getUserId()}',
         headers: await _headers(),
       );
@@ -259,7 +266,7 @@ class API {
 
   Future<void> deleteUser() async {
     if (_user != null) {
-      await http.delete(_user.self, headers: await _headers());
+      await _httpRetryClient.delete(_user.self, headers: await _headers());
       _user = null;
     }
   }
@@ -292,7 +299,7 @@ class API {
       print('sending card creation request ${jsonEncode(encryptedRequest)}');
 
       var response =
-          await http.post(user.links['creditCards'].href, body: jsonEncode(encryptedRequest), headers: headers);
+          await _httpClient.post(user.links['creditCards'].href, body: jsonEncode(encryptedRequest), headers: headers);
 
       if (response.statusCode >= 400) {
         print('card add failed: ${response.body}');
@@ -313,7 +320,7 @@ class API {
 
         int count = 0;
         response = await Observable.periodic(Duration(seconds: 5))
-            .asyncMap((_) => http.get(location, headers: headers))
+            .asyncMap((_) => _httpRetryClient.get(location, headers: headers))
             .where((response) => response.statusCode != 404)
             .doOnEach((_) => print('card polling attempt ${++count}, waiting for 202 accepted resource to be created'))
             .first
@@ -339,7 +346,7 @@ class API {
                     .forEach((c) => c.sync().listen((state) => print('add card sync state ${state.toString()}')));
                 return tick;
               })
-              .asyncMap((_) => http.get(card.links['self'].href, headers: headers))
+              .asyncMap((_) => _httpRetryClient.get(card.links['self'].href, headers: headers))
               .where((response) => response.statusCode == 200)
               .map((response) => CreditCard.fromJson(jsonDecode(response.body)))
               .doOnEach((_) => print('card polling attempt ${++count}, waiting for change from new state'))
@@ -348,7 +355,8 @@ class API {
               .where((event) => event.type == 'CREDITCARD_CREATED')
               .map((event) => event.payload)
               .where((payload) => payload['creditCardId'] == card.creditCardId && payload['state'] != 'NEW')
-              .asyncMap((_) => http.get(card.links['self'].href, headers: headers)) // refresh view from the API
+              .asyncMap(
+                  (_) => _httpRetryClient.get(card.links['self'].href, headers: headers)) // refresh view from the API
               .where((response) => response.statusCode == 200)
               .map((response) => CreditCard.fromJson(jsonDecode(response.body)))
         ])
@@ -374,7 +382,7 @@ class API {
   Future<CreditCard> deactivateCreditCard(Uri uri) async {
     print('deactivating credit card: ${uri.toString()}');
 
-    var response = await http.post(
+    var response = await _httpRetryClient.post(
       uri,
       headers: await _headers(),
       body: jsonEncode({'causedBy': 'CARDHOLDER'}),
@@ -390,7 +398,7 @@ class API {
   Future<CreditCard> reactivateCreditCard(Uri uri) async {
     print('reactivating credit card: ${uri.toString()}');
 
-    var response = await http.post(
+    var response = await _httpRetryClient.post(
       uri,
       headers: await _headers(),
     );
@@ -405,7 +413,7 @@ class API {
   Future<CreditCard> declineCreditCardTerms(Uri uri) async {
     print('declining terms and conditions: ${uri.toString()}');
 
-    var response = await http.post(
+    var response = await _httpRetryClient.post(
       uri,
       headers: await _headers(),
     );
@@ -443,7 +451,7 @@ class API {
       state: CreditCardAcceptTermsState.accepting,
     );
 
-    var response = await http.post(uri, headers: headers);
+    var response = await _httpClient.post(uri, headers: headers);
 
     if (response.statusCode >= 400) {
       print('card add failed: ${response.body}');
@@ -463,7 +471,7 @@ class API {
       print("api returned 202 for card creation at location $location, starting polling for card");
       do {
         await Future.delayed(Duration(seconds: 5));
-        response = await http.get(location, headers: headers);
+        response = await _httpRetryClient.get(location, headers: headers);
       } while (response.statusCode == 404);
 
       print('polling completed, current card: ${response.body}');
@@ -476,7 +484,7 @@ class API {
       do {
         await Future.delayed(Duration(seconds: 5));
 
-        response = await http.get(updatedCard.links['self'].href, headers: headers);
+        response = await _httpRetryClient.get(updatedCard.links['self'].href, headers: headers);
         updatedCard = CreditCard.fromJson(jsonDecode(response.body));
       } while (
           !['PENDING_ACTIVE', 'PENDING_VERIFICATION', 'ERROR', 'DECLINED', 'NOT_ELIGIBLE'].contains(updatedCard.state));
@@ -495,7 +503,7 @@ class API {
   }
 
   Future<Page<Transaction>> getTransactions(Uri uri) async {
-    var response = await http.get(
+    var response = await _httpRetryClient.get(
       uri,
       headers: await _headers(accept: 'application/vnd.fitpay-v2+json'),
     );
@@ -509,7 +517,7 @@ class API {
   }
 
   Future<CreditCard> getCreditCard(Uri uri) async {
-    var response = await http.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
 
     if (response.statusCode == 200) {
       return CreditCard.fromJson(jsonDecode(response.body));
@@ -541,7 +549,7 @@ class API {
       urlBuilder.queryParameters['limit'] = '$limit';
       urlBuilder.queryParameters['offset'] = '$offset';
 
-      var response = await http.get(urlBuilder.build().toString(), headers: await _headers());
+      var response = await _httpRetryClient.get(urlBuilder.build().toString(), headers: await _headers());
 
       if (response.statusCode == 200) {
         Page<CreditCard> page = Page<CreditCard>.fromJson(jsonDecode(response.body));
@@ -563,13 +571,13 @@ class API {
 
   /// Deletes the credit card at [uri]
   Future<void> deleteCreditCard(Uri uri) async {
-    var response = await http.get(uri, headers: await _headers(includeFpKeyId: false));
+    var response = await _httpRetryClient.get(uri, headers: await _headers(includeFpKeyId: false));
     if (response.statusCode == 200) {
       CreditCard card = CreditCard.fromJson(jsonDecode(response.body));
       CreditCard.removeAcceptTermsState(card.creditCardId);
     }
 
-    response = await http.delete(uri.toString(), headers: await _headers(includeFpKeyId: false));
+    response = await _httpRetryClient.delete(uri.toString(), headers: await _headers(includeFpKeyId: false));
 
     if (response.statusCode == 204) {
       print('successfully deleted credit card: ${uri.toString()}');
@@ -579,7 +587,7 @@ class API {
   Future<Device> createDevice(Device device) async {
     User user = await getUser();
     if (user.links.containsKey('devices')) {
-      var response = await http.post("${user.links['devices'].href}",
+      var response = await _httpClient.post("${user.links['devices'].href}",
           body: jsonEncode(device.toJson()), headers: await _headers());
 
       print('devices: ${response.body}');
@@ -595,13 +603,13 @@ class API {
   }
 
   Future<void> makeActive(Uri uri) async {
-    var response = await http.post(uri, headers: await _headers());
+    var response = await _httpRetryClient.post(uri, headers: await _headers());
 
     print('make active: ${response.body}');
   }
 
   Future<Device> getDevice(Uri uri) async {
-    var response = await http.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
 
     if (response.statusCode == 200) {
       return Device.fromJson(jsonDecode(response.body));
@@ -614,7 +622,7 @@ class API {
     List<Map<String, dynamic>> encoded = await Observable.fromIterable(patch).map((p) => p.toJson()).toList();
 
     print('device patch: ${jsonEncode(encoded)}');
-    var response = await http.patch(uri, headers: await _headers(), body: jsonEncode(encoded));
+    var response = await _httpRetryClient.patch(uri, headers: await _headers(), body: jsonEncode(encoded));
 
     if (response.statusCode == 200) {
       print('device patch result: ${response.body}');
@@ -625,11 +633,11 @@ class API {
   }
 
   Future<void> deleteDevice(Uri uri) async {
-    await http.delete(uri, headers: await _headers(includeFpKeyId: false));
+    await _httpRetryClient.delete(uri, headers: await _headers(includeFpKeyId: false));
   }
 
   Future<Commit> getDeviceCommit(Uri uri) async {
-    var response = await http.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
 
     if (response.statusCode == 200) {
       return Commit.fromJson(jsonDecode(response.body));
@@ -639,7 +647,7 @@ class API {
   }
 
   Future<Page<Commit>> getDeviceCommits(Uri uri) async {
-    var response = await http.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
 
     if (response.statusCode == 200) {
       return Page<Commit>.fromJson(jsonDecode(response.body));
@@ -653,7 +661,7 @@ class API {
     assert(response != null);
 
     if (commit.links.containsKey('confirm')) {
-      await http.post(
+      await _httpClient.post(
         commit.links['confirm'].toUri(),
         body: jsonEncode(response.toJson()),
         headers: await _headers(includeFpKeyId: false),
@@ -668,7 +676,7 @@ class API {
     if (commit.links.containsKey('apduResponse')) {
       print('body: ${jsonEncode(result.toJson())}');
 
-      var response = await http.post(
+      var response = await _httpRetryClient.post(
         commit.links['apduResponse'].toUri(),
         body: jsonEncode(result.toJson()),
         headers: await _headers(includeFpKeyId: false),
@@ -682,7 +690,7 @@ class API {
     Uri ackLink = request?.links['ackSync']?.toUri();
 
     if (ackLink != null) {
-      await http.post(ackLink, headers: await _headers(includeFpKeyId: false));
+      await _httpRetryClient.post(ackLink, headers: await _headers(includeFpKeyId: false));
     }
   }
 
@@ -690,13 +698,14 @@ class API {
     Uri completeLink = request?.links['completeSync']?.toUri();
 
     if (completeLink != null) {
-      await http.post(completeLink, headers: await _headers(includeFpKeyId: false));
+      await _httpRetryClient.post(completeLink, headers: await _headers(includeFpKeyId: false));
     }
   }
 
   Future<VerificationMethod> selectVerificationMethod(VerificationMethod method) async {
     if (method.links.containsKey('select')) {
-      var response = await http.post(method.links['select'].toUri(), headers: await _headers(includeFpKeyId: false));
+      var response =
+          await _httpClient.post(method.links['select'].toUri(), headers: await _headers(includeFpKeyId: false));
 
       print('select verification response ${response.statusCode}: ${response.body}');
 
@@ -704,6 +713,8 @@ class API {
         return VerificationMethod.fromJson(jsonDecode(response.body));
       }
     }
+
+    return null;
   }
 
   Future<VerificationMethod> verifyVerificationMethod(VerificationMethod method, String verificationCode) async {
@@ -712,7 +723,7 @@ class API {
 
       print('verification request: $body');
 
-      var response = await http.post(
+      var response = await _httpClient.post(
         method.links['verify'].toUri(),
         body: jsonEncode({'verificationCode': verificationCode}),
         headers: await _headers(includeFpKeyId: false),
@@ -726,12 +737,14 @@ class API {
     } else {
       print('no verify link available! ${method.links.toString()}');
     }
+
+    return null;
   }
 
   Future<Page<Device>> getDevices() async {
     User user = await getUser();
     if (user.links.containsKey('devices')) {
-      var response = await http.get("${user.links['devices'].href}", headers: await _headers());
+      var response = await _httpRetryClient.get("${user.links['devices'].href}", headers: await _headers());
 
       print('devices: ${response.body}');
 
@@ -744,8 +757,8 @@ class API {
   }
 
   Future<Page<GPRAccount>> getGPRAccounts(String serialCode) async {
-    var response =
-        await http.get('${_config.apiUrl}/accounts?deviceSerialNumber=$serialCode', headers: await _headers());
+    var response = await _httpRetryClient.get('${_config.apiUrl}/accounts?deviceSerialNumber=$serialCode',
+        headers: await _headers());
 
     print("response from fitpay: ${response.body}");
 
@@ -760,7 +773,7 @@ class API {
     if (useMockAccount) {
       return mockGPRAccount;
     }
-    var response = await http.get('${_config.apiUrl}/accounts/$accountId', headers: await _headers());
+    var response = await _httpRetryClient.get('${_config.apiUrl}/accounts/$accountId', headers: await _headers());
 
     print("GPR Account: ${response.body}");
 
@@ -772,7 +785,7 @@ class API {
   }
 
   Future<GPRAccount> activateAccount(Uri uri) async {
-    var response = await http.post(uri, headers: await _headers());
+    var response = await _httpClient.post(uri, headers: await _headers());
 
     print('Account activation response ${response.statusCode}: ${response.body}');
 
@@ -786,7 +799,7 @@ class API {
   Future<FundingSource> createFundingSource(FundingSource fundingSource) async {
     User user = await getUser();
     if (user.links.containsKey('fundingSources')) {
-      var response = await http.post(user.links['fundingSources'].toUri(),
+      var response = await _httpClient.post(user.links['fundingSources'].toUri(),
           body: jsonEncode(fundingSource.toJson()), headers: await _headers());
 
       print('New funding source: ${response.body}');
@@ -802,7 +815,7 @@ class API {
     if (useMockFundingSources) {
       return mockFundingSources;
     }
-    var response = await http.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
 
     print('Funding sources: ${response.body}');
 
@@ -828,7 +841,7 @@ class API {
   }
 
   Future<GPRAccount> convertHybridToGpr(Uri uri) async {
-    var response = await http.post(uri, headers: await _headers());
+    var response = await _httpClient.post(uri, headers: await _headers());
 
     print('Account conversion response ${response.statusCode}: ${response.body}');
 
