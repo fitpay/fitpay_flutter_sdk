@@ -92,6 +92,12 @@ class API {
           if (_user != null && (DateTime.now().millisecondsSinceEpoch - _lastSseStreamHeartbeatTs) > 60000) {
             print(
                 'time since last stream heartbeat: ${DateTime.now().millisecondsSinceEpoch - _lastSseStreamHeartbeatTs}ms exceeds the limit, refreshing the SSE subscription');
+
+            if (_accessToken == null) {
+              print('unable to refresh SSE stream, _accessToken has been removed');
+              return;
+            }
+
             _user = await getUser(forceRefresh: true);
             await _disconnectSseStream();
             await _connectSseStream();
@@ -862,7 +868,7 @@ class API {
       headers['Authorization'] = 'Bearer ${_accessToken.token}';
     }
 
-    if (includeFpKeyId) {
+    if (includeFpKeyId && _encryptor != null) {
       headers['fp-key-id'] = await _encryptor.currentKeyId();
     }
 
