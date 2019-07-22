@@ -350,6 +350,11 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
     } on BleDisconnectedException {
       print('unexpected ble disconnect');
       await disconnect();
+    } catch (err) {
+      print('unexpected ble exception: ${err.toString()}');
+      _commandResult.add(HndxResultState(state: HndxCmdState.failed));
+      _resetHndxCommandState();
+      throw err;
     }
 
     return Uint8List(0);
