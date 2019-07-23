@@ -84,60 +84,66 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
         await Future.delayed(Duration(seconds: 3));
       }
 
-      _connectStream = RxBle.connect(deviceId, waitForDevice: false, autoConnect: false).listen((state) async {
-        print('hndx connection state change ${state.toString()}');
+      try {
+        _connectStream?.cancel();
+        _connectStream = RxBle.connect(deviceId, waitForDevice: false, autoConnect: false).listen((state) async {
+          print('hndx connection state change ${state.toString()}');
 
-        switch (state) {
-          case BleConnectionState.connected:
-            print('forcing 2s delay after connected event, why?!???');
-            await Future.delayed(Duration(seconds: 1));
+          switch (state) {
+            case BleConnectionState.connected:
+              print('forcing 2s delay after connected event, why?!???');
+              await Future.delayed(Duration(seconds: 1));
 
-            if (Platform.isAndroid) {
-              print('android only: requesting mtu change');
-              try {
-                _mtu = await RxBle.requestMtu(deviceId, 257);
-              } on BleDisconnectedException {
-                print('unexpected ble disconnect');
-                disconnect();
-                return;
+              if (Platform.isAndroid) {
+                print('android only: requesting mtu change');
+                try {
+                  _mtu = await RxBle.requestMtu(deviceId, 257);
+                } on BleDisconnectedException {
+                  print('unexpected ble disconnect');
+                  disconnect();
+                  return;
+                }
+
+                print('android only: mtu=$_mtu');
+                _mtu = _mtu - 3;
+              } else if (Platform.isIOS) {
+                // hard coded for iOS
+                _mtu = 182;
               }
 
-              print('android only: mtu=$_mtu');
-              _mtu = _mtu - 3;
-            } else if (Platform.isIOS) {
-              // hard coded for iOS
-              _mtu = 182;
-            }
+              _createSubscriptions();
 
-            _createSubscriptions();
+              // this is here so this app can deal with devices that haven't been upgraded yet to emit the 0x03 (ready)
+              // byte when the above subscriptions have been completed.  This effectively replicates what was going on
+              // before the 0x03 was introduced with a delay between "connected" and actually being ready to send
+              // data to hndx
+              stateStream.where((state) => state == PaymentDeviceState.connected).first.timeout(Duration(seconds: 2),
+                  onTimeout: () {
+                print(
+                    'dispatching connected after not receiving the 0x03 byte back from the device, older firmware maybe?');
+                dispatch(PaymentDeviceState.connected);
+              });
 
-            // this is here so this app can deal with devices that haven't been upgraded yet to emit the 0x03 (ready)
-            // byte when the above subscriptions have been completed.  This effectively replicates what was going on
-            // before the 0x03 was introduced with a delay between "connected" and actually being ready to send
-            // data to hndx
-            stateStream.where((state) => state == PaymentDeviceState.connected).first.timeout(Duration(seconds: 2),
-                onTimeout: () {
-              print(
-                  'dispatching connected after not receiving the 0x03 byte back from the device, older firmware maybe?');
-              dispatch(PaymentDeviceState.connected);
-            });
+              break;
 
-            break;
+            case BleConnectionState.disconnecting:
+              print('hndx ble connector disconnecting');
+              dispatch(PaymentDeviceState.disconnecting);
+              break;
 
-          case BleConnectionState.disconnecting:
-            print('hndx ble connector disconnecting');
-            dispatch(PaymentDeviceState.disconnecting);
-            break;
+            case BleConnectionState.disconnected:
+              print('hndx ble connector disconnected');
+              disconnect();
+              break;
 
-          case BleConnectionState.disconnected:
-            print('hndx ble connector disconnected');
-            disconnect();
-            break;
-
-          default:
-            print('unhandled ble state change: ${state.toString()}');
-        }
-      });
+            default:
+              print('unhandled ble state change: ${state.toString()}');
+          }
+        });
+      } on BleDisconnectedException {
+        print('unexpected ble disconnect while trying to connect, calling connect again');
+        Future.delayed(Duration(milliseconds: 100), () => connect(deviceId));
+      }
     } finally {
       _hndxConnectingLock.release();
     }
