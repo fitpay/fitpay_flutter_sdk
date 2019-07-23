@@ -763,7 +763,7 @@ class API {
   }
 
   Future<Page<GPRAccount>> getGPRAccounts(String serialCode) async {
-    var response = await _httpRetryClient.get('${_config.apiUrl}/accounts?deviceSerialNumber=$serialCode',
+    var response = await _httpRetryClient.get('${_config.apiUrl}/galileoAccounts?deviceSerialNumber=$serialCode',
         headers: await _headers());
 
     print("response from fitpay: ${response.body}");
@@ -775,11 +775,8 @@ class API {
     return null;
   }
 
-  Future<GPRAccount> getGPRAccount(String accountId, {bool useMockAccount = false}) async {
-    if (useMockAccount) {
-      return mockGPRAccount;
-    }
-    var response = await _httpRetryClient.get('${_config.apiUrl}/accounts/$accountId', headers: await _headers());
+  Future<GPRAccount> getGPRAccount(String accountId) async {
+    var response = await _httpRetryClient.get('${_config.apiUrl}/galileoAccounts/$accountId', headers: await _headers());
 
     print("GPR Account: ${response.body}");
 
@@ -791,7 +788,7 @@ class API {
   }
 
   Future<GPRAccount> activateAccount(Uri uri) async {
-    var response = await _httpClient.post(uri, headers: await _headers());
+    var response = await _httpClient.post("https://${uri.toString()}", headers: await _headers());
 
     print('Account activation response ${response.statusCode}: ${response.body}');
 
