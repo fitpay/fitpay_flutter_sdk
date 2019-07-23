@@ -707,15 +707,28 @@ class GPRTransaction extends BaseResource {
   Map<String, dynamic> toJson() => _$GPRTransactionToJson(this);
 }
 
+enum FundingType { ACH, TOPUP }
+
 @JsonSerializable(nullable: true)
 class FundingSource extends BaseResource {
   final String accountNumber;
   final String routingNumber;
   final String nameOnAccount;
+  final String userId;
+  final FundingType fundingType;
   final String displayName;
   final String accountId;
 
-  FundingSource({this.accountNumber, this.routingNumber, this.nameOnAccount, this.displayName, this.accountId});
+  FundingSource(
+    {this.accountNumber, 
+    this.routingNumber, 
+    this.nameOnAccount, 
+    this.userId, 
+    this.fundingType, 
+    this.displayName, 
+    this.accountId,
+    Map<String, Link> links})
+    : super(links: links);
 
   factory FundingSource.fromJson(Map<String, dynamic> json) => _$FundingSourceFromJson(json);
 
