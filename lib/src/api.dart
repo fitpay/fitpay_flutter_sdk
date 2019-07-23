@@ -8,9 +8,7 @@ import 'dart:async';
 import 'package:uri/uri.dart';
 import 'package:eventsource/eventsource.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:fitpay_flutter_sdk/src/mock_gpr_account.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_transaction.dart';
-import 'package:fitpay_flutter_sdk/src/mock_funding_source.dart';
 import 'package:http_retry/http_retry.dart';
 
 class API {
@@ -802,7 +800,7 @@ class API {
   Future<FundingSource> createFundingSource(FundingSource fundingSource) async {
     User user = await getUser();
     if (user.links.containsKey('fundingSources')) {
-      var response = await _httpClient.post(user.links['fundingSources'].toUri(),
+      var response = await _httpClient.post("https://${user.links['fundingSources'].href}",
           body: jsonEncode(fundingSource.toJson()), headers: await _headers());
 
       print('New funding source: ${response.body}');
@@ -814,11 +812,8 @@ class API {
     return null;
   }
 
-  Future<Page<FundingSource>> getFundingSources(Uri uri, {bool useMockFundingSources = false}) async {
-    if (useMockFundingSources) {
-      return mockFundingSources;
-    }
-    var response = await _httpRetryClient.get(uri, headers: await _headers());
+  Future<Page<FundingSource>> getFundingSources(Uri uri) async {
+    var response = await _httpRetryClient.get("https://${uri.toString()}", headers: await _headers());
 
     print('Funding sources: ${response.body}');
 
