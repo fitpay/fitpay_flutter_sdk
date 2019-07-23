@@ -737,6 +737,8 @@ class API {
 
       if (response.statusCode == 200) {
         return VerificationMethod.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode >= 400 && response.statusCode <= 499) {
+        throw VerificationMethodSubmitError.fromJson(jsonDecode(response.body));
       } else {
         throw response;
       }

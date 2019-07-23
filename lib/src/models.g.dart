@@ -295,6 +295,37 @@ Map<String, dynamic> _$VerificationMethodToJson(VerificationMethod instance) =>
       'appToAppContext': instance.appToAppContext
     };
 
+VerificationMethodSubmitError _$VerificationMethodSubmitErrorFromJson(
+    Map<String, dynamic> json) {
+  return VerificationMethodSubmitError(
+      summary: json['summary'] as String,
+      description: json['description'] as String,
+      requestId: json['requestId'] as String,
+      reason: _$enumDecodeNullable(
+              _$VerificationMethodReasonEnumMap, json['details']) ??
+          VerificationMethodReason.genericError);
+}
+
+Map<String, dynamic> _$VerificationMethodSubmitErrorToJson(
+        VerificationMethodSubmitError instance) =>
+    <String, dynamic>{
+      'summary': instance.summary,
+      'description': instance.description,
+      'requestId': instance.requestId,
+      'details': _$VerificationMethodReasonEnumMap[instance.reason]
+    };
+
+const _$VerificationMethodReasonEnumMap = <VerificationMethodReason, dynamic>{
+  VerificationMethodReason.incorrectCode: 'INCORRECT_CODE',
+  VerificationMethodReason.incorrectCodeRetriesExceed:
+      'INCORRECT_CODE_RETRIES_EXCEEDED',
+  VerificationMethodReason.expiredCode: 'EXPIRED_CODE',
+  VerificationMethodReason.incorrectTav: 'INCORRECT_TAV',
+  VerificationMethodReason.expiredSession: 'EXPIRED_SESSION',
+  VerificationMethodReason.genericError: 'GENERIC_ERROR',
+  VerificationMethodReason.notAvailable: 'NOT_AVAILABLE'
+};
+
 CardMetaData _$CardMetaDataFromJson(Map<String, dynamic> json) {
   return CardMetaData(
       foregroundColor: json['foregroundColor'] as String,

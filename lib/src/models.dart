@@ -350,6 +350,42 @@ class VerificationMethod extends BaseResource {
   factory VerificationMethod.fromJson(Map<String, dynamic> json) => _$VerificationMethodFromJson(json);
 }
 
+enum VerificationMethodReason {
+  @JsonValue('INCORRECT_CODE')
+  incorrectCode,
+  @JsonValue('INCORRECT_CODE_RETRIES_EXCEEDED')
+  incorrectCodeRetriesExceed,
+  @JsonValue('EXPIRED_CODE')
+  expiredCode,
+  @JsonValue('INCORRECT_TAV')
+  incorrectTav,
+  @JsonValue('EXPIRED_SESSION')
+  expiredSession,
+  @JsonValue('GENERIC_ERROR')
+  genericError,
+  @JsonValue('NOT_AVAILABLE')
+  notAvailable
+}
+
+@JsonSerializable(nullable: true)
+class VerificationMethodSubmitError {
+  final String summary;
+  final String description;
+  final String requestId;
+  @JsonKey(name: 'details', defaultValue: VerificationMethodReason.genericError)
+  final VerificationMethodReason reason;
+
+  VerificationMethodSubmitError({
+    this.summary,
+    this.description,
+    this.requestId,
+    this.reason,
+  });
+
+  factory VerificationMethodSubmitError.fromJson(Map<String, dynamic> json) =>
+      _$VerificationMethodSubmitErrorFromJson(json);
+}
+
 @JsonSerializable(nullable: true)
 class CardMetaData {
   final String contactEmail;
