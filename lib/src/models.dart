@@ -603,28 +603,36 @@ class CreateCreditCardRequest {
   String _cardNumber;
   int expMonth;
   int expYear;
-  String securityCode;
-  String name;
-  String street;
-  String city;
-  String country;
-  String state;
-  String postalCode;
-  String deviceId;
+  String _securityCode;
+  String _name;
+  String _street;
+  String _city;
+  String _country;
+  String _state;
+  String _postalCode;
+  String _deviceId;
 
-  CreateCreditCardRequest(
-      {cardNumber,
-      this.expMonth,
-      this.expYear,
-      this.securityCode,
-      this.name,
-      this.street,
-      this.city,
-      this.country,
-      this.state,
-      this.postalCode,
-      this.deviceId})
-      : this._cardNumber = cardNumber;
+  CreateCreditCardRequest({
+    cardNumber,
+    this.expMonth,
+    this.expYear,
+    securityCode,
+    name,
+    street,
+    city,
+    country,
+    state,
+    postalCode,
+    deviceId,
+  })  : this._cardNumber = cardNumber,
+        this._name = name,
+        this._securityCode = securityCode,
+        this._street = street,
+        this._city = city,
+        this._country = country,
+        this._state = state,
+        this._postalCode = postalCode,
+        this._deviceId = deviceId;
 
   set cardNumber(String cardNumber) {
     this._cardNumber = cardNumber.replaceAll(RegExp(r'\D'), '');
@@ -635,6 +643,23 @@ class CreateCreditCardRequest {
 
     return _cardNumber.replaceAll(RegExp(r'\D'), '');
   }
+
+  String get name => _name?.isNotEmpty ? _name : null;
+  set name(String v) => _name = v;
+  String get securityCode => _securityCode?.isNotEmpty ? _securityCode : null;
+  set securityCode(String v) => _securityCode = v;
+  String get street => _street?.isNotEmpty ? _street : null;
+  set street(String v) => _street = v;
+  String get city => _city?.isNotEmpty ? _city : null;
+  set city(String v) => _city = v;
+  String get country => _country?.isNotEmpty ? _country : null;
+  set country(String v) => _country = v;
+  String get state => _state?.isNotEmpty ? _state : null;
+  set state(String v) => _state = v;
+  String get postalCode => _postalCode?.isNotEmpty ? _postalCode : null;
+  set postalCode(String v) => _postalCode?.isNotEmpty ? _postalCode : null;
+  String get deviceId => _deviceId?.isNotEmpty ? _deviceId : null;
+  set deviceId(String v) => _deviceId = v;
 
   Map<String, dynamic> toJson() => _$CreateCreditCardRequestToJson(this);
 }

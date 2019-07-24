@@ -41,11 +41,13 @@ class DataEncryptor {
   Future<String> encrypt(Map<String, dynamic> data) async {
     EncryptionKey key = await this.currentKey;
 
+    String encryptedPayload = jsonEncode(data);
+
     return await _channel.invokeMethod('encrypt', {
       'keyId': key.keyId,
       'publicKey': key.serverPublicKey,
       'privateKey': key.clientPrivateKey,
-      'data': jsonEncode(data)
+      'data': encryptedPayload,
     });
   }
 
