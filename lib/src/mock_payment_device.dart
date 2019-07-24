@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'payment_device_connector.dart';
 import 'models.dart';
 import 'utils.dart';
@@ -118,6 +120,6 @@ class MockUtils {
       l.add(random.nextInt(255));
     }
 
-    return Utils.hexEncode(l);
+    return Utils.hexEncode(Uint8List.fromList(l));
   }
 }
