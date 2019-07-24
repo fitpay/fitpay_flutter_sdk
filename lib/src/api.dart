@@ -292,6 +292,7 @@ class API {
           'expYear': request.expYear,
           'name': request.name,
           'deviceId': request.deviceId,
+          'riskData': request.riskData,
           'address': {
             'street1': request.street,
             'city': request.city,

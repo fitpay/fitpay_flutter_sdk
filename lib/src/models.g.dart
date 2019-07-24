@@ -553,20 +553,49 @@ Map<String, dynamic> _$ApiErrorToJson(ApiError instance) => <String, dynamic>{
       'description': instance.description
     };
 
+IdvVerificationData _$IdvVerificationDataFromJson(Map<String, dynamic> json) {
+  return IdvVerificationData(
+      locale: json['locale'] as String,
+      nfcCapable: json['nfcCapable'] as bool,
+      deviceCountry: json['deviceCountry'] as String,
+      oemAccountUserName: json['oemAccountUserName'] as String,
+      deviceTimeZone: json['deviceTimeZone'] as String,
+      deviceBluetoothMac: json['deviceBluetoothMac'] as String,
+      oemAccountCreatedDate: json['oemAccountCreatedDate'] == null
+          ? null
+          : DateTime.parse(json['oemAccountCreatedDate'] as String));
+}
+
+Map<String, dynamic> _$IdvVerificationDataToJson(
+        IdvVerificationData instance) =>
+    <String, dynamic>{
+      'locale': instance.locale,
+      'nfcCapable': instance.nfcCapable,
+      'deviceCountry': instance.deviceCountry,
+      'oemAccountUserName': instance.oemAccountUserName,
+      'deviceTimeZone': instance.deviceTimeZone,
+      'deviceBluetoothMac': instance.deviceBluetoothMac,
+      'oemAccountCreatedDate': instance.oemAccountCreatedDate?.toIso8601String()
+    };
+
 CreateCreditCardRequest _$CreateCreditCardRequestFromJson(
     Map<String, dynamic> json) {
   return CreateCreditCardRequest(
       cardNumber: json['cardNumber'],
       expMonth: json['expMonth'] as int,
       expYear: json['expYear'] as int,
-      securityCode: json['securityCode'] as String,
-      name: json['name'] as String,
-      street: json['street'] as String,
-      city: json['city'] as String,
-      country: json['country'] as String,
-      state: json['state'] as String,
-      postalCode: json['postalCode'] as String,
-      deviceId: json['deviceId'] as String);
+      securityCode: json['securityCode'],
+      name: json['name'],
+      street: json['street'],
+      city: json['city'],
+      country: json['country'],
+      state: json['state'],
+      postalCode: json['postalCode'],
+      deviceId: json['deviceId'])
+    ..riskData = json['riskData'] == null
+        ? null
+        : IdvVerificationData.fromJson(
+            json['riskData'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$CreateCreditCardRequestToJson(
@@ -574,15 +603,16 @@ Map<String, dynamic> _$CreateCreditCardRequestToJson(
     <String, dynamic>{
       'expMonth': instance.expMonth,
       'expYear': instance.expYear,
-      'securityCode': instance.securityCode,
+      'riskData': instance.riskData,
+      'cardNumber': instance.cardNumber,
       'name': instance.name,
+      'securityCode': instance.securityCode,
       'street': instance.street,
       'city': instance.city,
       'country': instance.country,
       'state': instance.state,
       'postalCode': instance.postalCode,
-      'deviceId': instance.deviceId,
-      'cardNumber': instance.cardNumber
+      'deviceId': instance.deviceId
     };
 
 GPRAccount _$GPRAccountFromJson(Map<String, dynamic> json) {

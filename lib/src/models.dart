@@ -598,6 +598,33 @@ class ApiError {
   factory ApiError.fromJson(Map<String, dynamic> json) => _$ApiErrorFromJson(json);
 }
 
+String _dateTimeToJson(DateTime d) => d.toIso8601String();
+
+@JsonSerializable(nullable: true)
+class IdvVerificationData {
+  String locale;
+  bool nfcCapable;
+  String deviceCountry;
+  String oemAccountUserName;
+  String deviceTimeZone;
+  String deviceBluetoothMac;
+  @JsonKey(toJson: _dateTimeToJson)
+  DateTime oemAccountCreatedDate;
+
+  IdvVerificationData({
+    this.locale,
+    this.nfcCapable,
+    this.deviceCountry,
+    this.oemAccountUserName,
+    this.deviceTimeZone,
+    this.deviceBluetoothMac,
+    this.oemAccountCreatedDate,
+  });
+
+  factory IdvVerificationData.fromJson(Map<String, dynamic> json) => _$IdvVerificationDataFromJson(json);
+  Map<String, dynamic> toJson() => _$IdvVerificationDataToJson(this);
+}
+
 @JsonSerializable(nullable: true)
 class CreateCreditCardRequest {
   String _cardNumber;
@@ -611,6 +638,7 @@ class CreateCreditCardRequest {
   String _state;
   String _postalCode;
   String _deviceId;
+  IdvVerificationData riskData;
 
   CreateCreditCardRequest({
     cardNumber,
