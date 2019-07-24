@@ -143,6 +143,8 @@ class _Converter<T> implements JsonConverter<T, Object> {
       return json == null ? null : Device.fromJson(json) as T;
     } else if (T == GPRAccount) {
       return json == null ? null : GPRAccount.fromJson(json) as T;
+    } else if (T == FundingSource) {
+      return json == null ? null : FundingSource.fromJson(json) as T;
     } else if (T == Commit) {
       return json == null ? null : Commit.fromJson(json) as T;
     } else if (T == GPRTransaction) {
