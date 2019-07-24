@@ -1,7 +1,7 @@
+import '../utils.dart';
 import 'package:rx_ble/rx_ble.dart';
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:convert/convert.dart';
 import 'package:fitpay_flutter_sdk/fitpay_flutter_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'hndx_images.dart';
@@ -72,7 +72,7 @@ class HndxStatusAck {
 
   factory HndxStatusAck.fromData(Uint8List data) {
     if (data.length != 7) {
-      print('status ack/nack response was not 7 bytes [${hex.encode(data)}], length: ${data.length}');
+      print('status ack/nack response was not 7 bytes [${Utils.hexEncode(data)}], length: ${data.length}');
       throw 'invalid ack/nack message, unexpected length';
     }
 
@@ -458,7 +458,7 @@ class HndxCardUtils {
       // find the apdu command with the AID
       int aidIndex = -1;
       for (int i = 0; i < towCommands.length; i++) {
-        List<int> cmd = hex.decode(towCommands[i].command);
+        List<int> cmd = Utils.hexDecode(towCommands[i].command);
         if (cmd[0] == 0x80 && cmd[1] == 0xF0 && cmd[2] == 0x02 && cmd[3] == 0x02) {
           aidIndex = i;
           break;
@@ -467,7 +467,7 @@ class HndxCardUtils {
 
       if (aidIndex != -1) {
         // extract aid bytes from the full apdu command
-        List<int> cmdWithAid = hex.decode(towCommands[aidIndex].command);
+        List<int> cmdWithAid = Utils.hexDecode(towCommands[aidIndex].command);
         int aidLength = cmdWithAid[TOW_AID_LENGTH_OFFSET];
         List<int> aidBytes = cmdWithAid.sublist(TOW_AID_LENGTH_OFFSET, aidLength + 1);
 
@@ -493,7 +493,7 @@ class HndxCardUtils {
         ));
         towCommands.add(APDUCommand(
           commandId: 'c09104c8-1d86-4cfd-97d5-5a232204d725',
-          command: '80C10000${hex.encode(aidBytes).toUpperCase()}',
+          command: '80C10000${Utils.hexEncode(aidBytes).toUpperCase()}',
           groupId: 0,
           sequence: sequence++,
           type: 'SET_DEFAULT_CARD',
@@ -530,7 +530,7 @@ class HndxApduUtils {
     buf.add([cmd.sequence & 0xFF, (cmd.sequence >> 8) & 0xFF]);
     buf.addByte(cmd.continueOnFailure ? 0x01 : 0x00);
 
-    List<int> apduCommand = hex.decode(cmd.command);
+    List<int> apduCommand = Utils.hexDecode(cmd.command);
     buf.add([apduCommand.length & 0xFF, (apduCommand.length >> 8) & 0xFF]);
     buf.add(apduCommand);
 
@@ -585,8 +585,8 @@ class HndxApduUtils {
 
       results.add(ApduCommandResult(
         commandId: cmd.commandId,
-        responseCode: hex.encode(responseCode),
-        responseData: hex.encode(responseData),
+        responseCode: Utils.hexEncode(responseCode),
+        responseData: Utils.hexEncode(responseData),
       ));
 
       if (idx >= data.length) {
@@ -670,8 +670,8 @@ class HendricksDeviceInfo extends HndxResult {
     info.deviceId =
         (deviceIdBytes[0] >> 24) | (deviceIdBytes[1] >> 16) | (deviceIdBytes[2] >> 8) | (deviceIdBytes[3] & 0xFF);
 
-    info.serialNumber = hex.encode(parsedPing[NRF_SERIAL_TYPE]);
-    info.mac = hex.encode(parsedPing[NRF_BLE_MAC_TYPE]);
+    info.serialNumber = Utils.hexEncode(parsedPing[NRF_SERIAL_TYPE]);
+    info.mac = Utils.hexEncode(parsedPing[NRF_BLE_MAC_TYPE]);
     info.buildHash = _str(parsedPing[BUILD_HASH]);
     info.buildBranch = _str(parsedPing[BUILD_BRANCH]);
     info.buildNumber = _str(parsedPing[BUILD_NUM]);

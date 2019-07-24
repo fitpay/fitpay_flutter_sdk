@@ -1,7 +1,7 @@
 import 'payment_device_connector.dart';
 import 'models.dart';
+import 'utils.dart';
 import 'dart:math';
-import 'package:convert/convert.dart';
 
 // TODO: This really should respond to the boarding script intead of having a statically
 // declared secure element
@@ -118,6 +118,6 @@ class MockUtils {
       l.add(random.nextInt(255));
     }
 
-    return hex.encode(l);
+    return Utils.hexEncode(l);
   }
 }

@@ -7,7 +7,7 @@ import 'package:rxdart/rxdart.dart';
 import 'hndx_models.dart';
 import 'package:rx_ble/rx_ble.dart';
 import 'package:semaphore/semaphore.dart';
-import 'package:convert/convert.dart';
+import '../utils.dart';
 
 class HndxConnectionState {
   final BleConnectionState state;
@@ -368,7 +368,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   Stream<HndxResultState> _sendCommand(Uint8List command, {Uint8List data, APDUPackage apduPackage}) async* {
     if (!(await isConnected)) {
-      print('device not yet connected, waiting to send command ${hex.encode(command)}: ${state.toString()}');
+      print('device not yet connected, waiting to send command ${Utils.hexEncode(command)}: ${state.toString()}');
       bool connected = await Observable.periodic(Duration(seconds: 5))
           .asyncMap((_) => isConnected)
           .where((connected) => connected)
@@ -376,16 +376,16 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
           .first;
 
       if (!connected) {
-        print('timeout waiting on connected device for command ${hex.encode(command)}');
+        print('timeout waiting on connected device for command ${Utils.hexEncode(command)}');
         yield HndxResultState(state: HndxCmdState.failed);
         return;
       }
     }
 
     try {
-      print('cmd [${hex.encode(command)}] waiting for lock');
+      print('cmd [${Utils.hexEncode(command)}] waiting for lock');
       await _hndxLock.acquire();
-      print('cmd [${hex.encode(command)}] aquired lock');
+      print('cmd [${Utils.hexEncode(command)}] aquired lock');
 
       this._cmdStartTime = DateTime.now().millisecondsSinceEpoch;
       this._currentCmd = command[0];
@@ -402,7 +402,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
       print('TX: status start [${HndxStatus.STATUS_START.toRadixString(16).padLeft(2, "0")}]');
       var startRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.STATUS_START]));
-      print('TX: status start response [${hex.encode(startRes)}]');
+      print('TX: status start response [${Utils.hexEncode(startRes)}]');
       _workflowState = HndxWorkflowState.waiting_status_start_ack;
 
       this._workflow.stream.listen((newWorkflowState) async {
@@ -410,9 +410,9 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
           case HndxWorkflowState.status_start_ack:
             print('status start ack completed, waiting on command ack');
             _workflowState = HndxWorkflowState.waiting_command_ack;
-            print('TX: command [${hex.encode(command)}]');
+            print('TX: command [${Utils.hexEncode(command)}]');
             var cmdRes = await _safeBleWrite(HndxBle.COMMAND_CHAR, command);
-            print('TX: command response [${hex.encode(cmdRes)}]');
+            print('TX: command response [${Utils.hexEncode(cmdRes)}]');
             break;
 
           case HndxWorkflowState.command_ack:
@@ -428,7 +428,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
                 print('TX: send data [${data.sublist(i, offset)}]');
                 var dataRes = await _safeBleWrite(HndxBle.DATA_CHAR, data.sublist(i, offset));
                 print(
-                    'TX: data response [${hex.encode(dataRes)}], offset: $i/${data.length} ${(i / data.length) * 100}%');
+                    'TX: data response [${Utils.hexEncode(dataRes)}], offset: $i/${data.length} ${(i / data.length) * 100}%');
               }
             }
 
@@ -436,7 +436,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
             print('command ack completed, waiting on status end ack');
             print('TX: status end [${HndxStatus.STATUS_END.toRadixString(16).padLeft(2, "0")}]');
             var endRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.STATUS_END]));
-            print('TX: status end response [${hex.encode(endRes)}]');
+            print('TX: status end response [${Utils.hexEncode(endRes)}]');
             break;
 
           case HndxWorkflowState.status_end_ack:
@@ -458,7 +458,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       yield* this._commandResult.stream;
     } finally {
       _hndxLock.release();
-      print('command [${hex.encode(command)}] released lock');
+      print('command [${Utils.hexEncode(command)}] released lock');
     }
   }
 
@@ -614,7 +614,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   StreamSubscription<Uint8List> _generateStatusSubscription(String deviceId) {
     return _safeBleObserve(HndxBle.STATUS_CHAR).listen((data) {
-      print('status received [${hex.encode(data)}]');
+      print('status received [${Utils.hexEncode(data)}]');
 
       HndxStatusAck ack = HndxStatusAck.fromData(data);
 
@@ -644,7 +644,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
           default:
             print(
-                'unexpected ack received [${hex.encode(data)}], currentState: ${_workflow.toString()}, resetting state');
+                'unexpected ack received [${Utils.hexEncode(data)}], currentState: ${_workflow.toString()}, resetting state');
             _commandResult.add(HndxResultState(state: HndxCmdState.failed));
 
             _resetHndxCommandState();
@@ -667,7 +667,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   StreamSubscription<Uint8List> _generateDataSubscription(String deviceId) {
     return _safeBleObserve(HndxBle.DATA_CHAR).listen((data) {
       if (_cmdAck == null) {
-        print('hndx is sending something back for data that was not expected [${hex.encode(data)}]');
+        print('hndx is sending something back for data that was not expected [${Utils.hexEncode(data)}]');
         return;
       }
 
@@ -679,7 +679,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
       if (_dataBuffer.length == _expectedDataLength) {
         print(
-            'hndx command ${_currentCmd.toRadixString(16).padLeft(2, "0")} ack\'ed: ${_cmdAck.successful}, finished in ${DateTime.now().millisecondsSinceEpoch - _cmdStartTime}ms with data [${hex.encode(_dataBuffer)}]');
+            'hndx command ${_currentCmd.toRadixString(16).padLeft(2, "0")} ack\'ed: ${_cmdAck.successful}, finished in ${DateTime.now().millisecondsSinceEpoch - _cmdStartTime}ms with data [${Utils.hexEncode(_dataBuffer)}]');
 
         if (!_cmdAck.successful) {
           _commandResult.add(HndxResultState(state: HndxCmdState.failed));

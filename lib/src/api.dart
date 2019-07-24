@@ -778,7 +778,8 @@ class API {
   }
 
   Future<GPRAccount> getGPRAccount(String accountId) async {
-    var response = await _httpRetryClient.get('${_config.apiUrl}/galileoAccounts/$accountId', headers: await _headers());
+    var response =
+        await _httpRetryClient.get('${_config.apiUrl}/galileoAccounts/$accountId', headers: await _headers());
 
     print("GPR Account: ${response.body}");
 

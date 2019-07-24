@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:convert/convert.dart';
+import '../utils.dart';
 import 'package:image/image.dart';
 import 'dart:io';
 
@@ -150,7 +150,7 @@ class HndxImgUtils {
       (rle_array_a.length >> 8) & 0xFF
     ]);
 
-    print('header [${hex.encode(header)}]');
+    print('header [${Utils.hexEncode(header)}]');
 
     BytesBuilder buf = new BytesBuilder();
     buf.add(header);
