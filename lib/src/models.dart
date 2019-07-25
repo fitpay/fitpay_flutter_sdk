@@ -951,6 +951,62 @@ class Funding extends BaseResource {
   Map<String, dynamic> toJson() => _$FundingToJson(this);
 }
 
+enum FundingType {
+  @JsonValue('TOPUP')
+  topUp,
+  @JsonValue('ACH')
+  scheduled,
+}
+
+enum FundingState {
+  @JsonValue("ACTIVE")
+  ACTIVE,
+  @JsonValue("STOPPED")
+  STOPPED,
+  @JsonValue("ERROR")
+  ERROR
+}
+
+@JsonSerializable(nullable: true)
+class Funding extends BaseResource {
+  FundingState fundingState;
+  String fundingId;
+  String accountId;
+  String fundingSourceId;
+  String description;
+  double fundingAmount;
+
+  static String dateToJson(DateTime date) => date.toUtc().toIso8601String();
+  @JsonKey(
+    fromJson: DateTime.parse,
+    toJson: dateToJson
+  )
+  DateTime nextFundingTs;
+  bool isRecurring;
+  double lowAmountTopUp;
+  double topAmountTopUp;
+  String displayName;
+  FundingType fundingType;
+
+  Funding({this.fundingState,
+    this.fundingId,
+    this.accountId,
+    this.fundingSourceId,
+    this.description,
+    this.fundingAmount,
+    this.nextFundingTs,
+    this.isRecurring = false,
+    this.lowAmountTopUp,
+    this.topAmountTopUp,
+    this.displayName,
+    this.fundingType});
+
+  factory Funding.fromJson(Map<String, dynamic> json) => _$FundingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FundingToJson(this);
+
+}
+
 enum JsonPatchOp {
   @JsonValue('add')
   add,

@@ -947,6 +947,57 @@ class API {
     return null;
   }
 
+  /// Returns the funding that was created.
+  /// 
+  /// If there was an exisiting funding, it throws that existing funding object
+  /// so that the caller can decide whether to overwrite it.
+  Future<Funding> createFunding(Funding funding) async {
+    User user = await getUser();
+    if (user.links.containsKey('fundings')) { // FIXME: not sure if this is the right key
+      List<Funding> existingFundings = await getFundings();
+      if (existingFundings.length > 0) throw existingFundings[0];
+      var response = await http.post(user.links['fundings'].toUri(),
+        body: jsonEncode(funding.toJson()),
+        headers: await _headers());
+      if (response.statusCode == 202) return Funding.fromJson(jsonDecode(response.body));
+    } 
+    return null;
+  }
+
+  Future<Funding> overwriteFunding(Funding newFunding, [Funding oldFunding]) async {
+    if (oldFunding == null) {
+      List<Funding> fundings = await getFundings();
+      if (fundings.length > 0) {
+        oldFunding = fundings[0];
+        print("Old funding not specified for overwrite. Overwriting: ${oldFunding.fundingId}");
+      } else {
+        throw StateError("No existing funding to overwrite!");
+      }
+    }
+
+    if (newFunding.links.containsKey('self')) {
+      var response = await http.post(
+        oldFunding.links['self'].toUri(),
+        body: jsonEncode(newFunding.toJson()),
+        headers: await _headers()
+      );
+
+      if (response.statusCode == 200) return Funding.fromJson(jsonDecode(response.body));
+    }
+
+    return null;
+  }
+
+  Future<List<Funding>> getFundings() async {
+    User user = await getUser();
+    if (user.links.containsKey('fundings')) {
+      var response = await http.get(user.links['fundings'].toUri());
+      if (response.statusCode == 202) return jsonDecode(response.body).map((value) => Funding.fromJson(value));
+    }
+
+    return [];
+  }
+
   Future<Page<FundingSource>> getFundingSources(Uri uri, {bool useMockFundingSources = false}) async {
     if (useMockFundingSources) {
       return mockFundingSources;
