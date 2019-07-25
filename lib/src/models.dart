@@ -672,21 +672,21 @@ class CreateCreditCardRequest {
     return _cardNumber.replaceAll(RegExp(r'\D'), '');
   }
 
-  String get name => _name?.isNotEmpty ? _name : null;
+  String get name => _name != null && _name.isNotEmpty ? _name : null;
   set name(String v) => _name = v;
-  String get securityCode => _securityCode?.isNotEmpty ? _securityCode : null;
+  String get securityCode => _securityCode != null && _securityCode.isNotEmpty ? _securityCode : null;
   set securityCode(String v) => _securityCode = v;
-  String get street => _street?.isNotEmpty ? _street : null;
+  String get street => _street != null && _street.isNotEmpty ? _street : null;
   set street(String v) => _street = v;
-  String get city => _city?.isNotEmpty ? _city : null;
+  String get city => _city != null && _city.isNotEmpty ? _city : null;
   set city(String v) => _city = v;
-  String get country => _country?.isNotEmpty ? _country : null;
+  String get country => _country != null && _country.isNotEmpty ? _country : null;
   set country(String v) => _country = v;
-  String get state => _state?.isNotEmpty ? _state : null;
+  String get state => _state != null && _state.isNotEmpty ? _state : null;
   set state(String v) => _state = v;
-  String get postalCode => _postalCode?.isNotEmpty ? _postalCode : null;
-  set postalCode(String v) => _postalCode?.isNotEmpty ? _postalCode : null;
-  String get deviceId => _deviceId?.isNotEmpty ? _deviceId : null;
+  String get postalCode => _postalCode != null && _postalCode.isNotEmpty ? _postalCode : null;
+  set postalCode(String v) => _postalCode = v;
+  String get deviceId => _deviceId != null && _deviceId.isNotEmpty ? _deviceId : null;
   set deviceId(String v) => _deviceId = v;
 
   Map<String, dynamic> toJson() => _$CreateCreditCardRequestToJson(this);
