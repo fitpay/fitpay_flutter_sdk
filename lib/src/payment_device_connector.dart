@@ -191,6 +191,9 @@ abstract class PaymentDeviceConnector {
                     case 'CREDITCARD_METADATA_UPDATED':
                       response = await syncOnCreditCardMetadataUpdated(commit);
                       break;
+                    case 'CREDITCARD_PROVISION_FAILED':
+                      response = await syncOnCreditCardProvisionFailed(commit);
+                      break;
                     default:
                       print('(default) skipping commit: ${commit.commitType}');
                       response = CommitResponse(
@@ -278,6 +281,12 @@ abstract class PaymentDeviceConnector {
   }
 
   Future<CommitResponse> syncOnCreditCardMetadataUpdated(Commit commit) async {
+    return CommitResponse(
+      result: CommitResult.SKIPPED,
+    );
+  }
+
+  Future<CommitResponse> syncOnCreditCardProvisionFailed(Commit commit) async {
     return CommitResponse(
       result: CommitResult.SKIPPED,
     );

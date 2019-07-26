@@ -748,6 +748,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   void _resetHndxCommandState() {
     print('resetting hndx cmd state');
+    dispatch(PaymentDeviceState.idle);
     _workflow?.close();
     _commandResult.close().then((_) {
       _workflow = null;
