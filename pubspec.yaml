@@ -6,7 +6,6 @@ homepage: https://www.fit-pay.com
 
 environment:
     sdk: '>=2.2.2 <3.0.0'
-    flutter: 1.5.4-hotfix.2
 
 dependencies:
     flutter:
@@ -21,10 +20,12 @@ dependencies:
     optional: ^3.0.2
     semaphore: ^0.1.1
     image: ^2.1.4
-    rx_ble: ^0.5.4
+    rx_ble: 
+        git:
+          url: https://github.com/fitpay/flutter-rx-ble
+          ref: 81df6a7d3497194bc93eeb24378c21f09e77f680
     eventsource: ^0.2.1
     shared_preferences: ^0.5.3+1
-    plugin_scaffold: ^1.0.1
 
 dev_dependencies:
     flutter_test:
