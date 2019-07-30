@@ -36,6 +36,8 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   StreamSubscription<Uint8List> _statusObserver;
   StreamSubscription<Uint8List> _dataObserver;
 
+  ScanResult scanResult;
+
   // hndx command state information during command execution
   HndxWorkflowState _workflowState;
   HndxStatusAck _statusEndAck;
@@ -67,29 +69,38 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       await super.connect(deviceId);
 
       // rx_ble requires a scan to be performed before a connection
-      print('hndx looking for and connecting to $deviceId');
-
       await _connectStream?.cancel();
-      await RxBle.stopScan();
 
-      print('hndx scanning for $deviceId');
-      dispatch(PaymentDeviceState.scanning);
-      await RxBle.startScan(deviceId: deviceId).first;
-      print('hndx $deviceId found in scan, stopping scan');
-      await RxBle.stopScan();
+      if (scanResult == null) {
+        print('hndx looking for and connecting to $deviceId');
 
-      dispatch(PaymentDeviceState.connecting);
-      if (Platform.isAndroid) {
-        print('hndx $deviceId scan stopped, forcing pause before attempting connect');
-        await Future.delayed(Duration(seconds: 3));
+        await _connectStream?.cancel();
+        await RxBle.stopScan();
+
+        print('hndx scanning for $deviceId');
+        dispatch(PaymentDeviceState.scanning);
+        scanResult = await RxBle.startScan(deviceId: deviceId).first;
+        print('hndx $deviceId found in scan, stopping scan');
+        await RxBle.stopScan();
+
+        if (Platform.isAndroid) {
+          print('hndx $deviceId scan stopped, forcing pause before attempting connect');
+          await Future.delayed(Duration(seconds: 3));
+        }
+      } else {
+        print('hndx scanResult ${scanResult.toString()} already exists, skipping scan');
       }
 
       try {
         _connectStream?.cancel();
-        _connectStream = RxBle.connect(deviceId, waitForDevice: false, autoConnect: false).listen((state) async {
+        _connectStream = RxBle.connect(deviceId, waitForDevice: true, autoConnect: false).listen((state) async {
           print('hndx connection state change ${state.toString()}');
 
           switch (state) {
+            case BleConnectionState.connecting:
+              dispatch(PaymentDeviceState.connecting);
+              break;
+
             case BleConnectionState.connected:
               print('forcing 2s delay after connected event, why?!???');
               await Future.delayed(Duration(seconds: 1));
