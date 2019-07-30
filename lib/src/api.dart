@@ -485,28 +485,57 @@ class API {
     }
 
     CreditCard updatedCard = CreditCard.fromJson(jsonDecode(response.body));
-    if (!['PENDING_ACTIVE', 'PENDING_VERIFICATION', 'ERROR', 'DECLINED', 'NOT_ELIGIBLE'].contains(updatedCard.state)) {
-      print('card state is ${updatedCard.state}, starting to poll to wait for state change');
+    var creditCardId = updatedCard.creditCardId;
+    var cardUrl = updatedCard.links['self'].href;
 
-      do {
-        await Future.delayed(Duration(seconds: 5));
+    // states we're waiting for the card to transition into after accept terms
+    var transitionStates = [
+      'PENDING_ACTIVE',
+      'PENDING_VERIFICATION',
+      'ACTIVE',
+      'ERROR',
+      'DECLINED',
+      'NOT_ELIGIBLE',
+      'DELETED'
+    ];
 
-        response = await _httpRetryClient.get(updatedCard.links['self'].href, headers: headers);
-        updatedCard = CreditCard.fromJson(jsonDecode(response.body));
-      } while (
-          !['PENDING_ACTIVE', 'PENDING_VERIFICATION', 'ERROR', 'DECLINED', 'NOT_ELIGIBLE'].contains(updatedCard.state));
+    if (!transitionStates.contains(updatedCard.state)) {
+      updatedCard = await Observable.race([
+        _sse
+            .where((event) => event.type == 'CREDITCARD_PROVISION_FAILED')
+            .where((event) => event.payload['creditCardId'] == creditCardId)
+            .asyncMap((_) => _httpRetryClient.get(cardUrl, headers: headers))
+            .map((response) => CreditCard.fromJson(jsonDecode(response.body))),
+        // refresh the card
+        Observable.periodic(Duration(seconds: 5))
+            .asyncMap((_) => _httpRetryClient.get(cardUrl, headers: headers))
+            .map((response) => CreditCard.fromJson(jsonDecode(response.body)))
+            .where((card) => transitionStates.contains(card.state)),
+      ]).first;
 
-      print('polling completed, current card: ${response.body}');
+      print('polling completed, current card state: ${updatedCard.state}');
     }
 
     print('accept terms completed on ${updatedCard.creditCardId} in state ${updatedCard.state}');
 
     CreditCard.removeAcceptTermsState(updatedCard.creditCardId);
 
-    yield CreditCardAcceptTermsStatus(
-      state: CreditCardAcceptTermsState.accepted,
-      creditCard: updatedCard,
-    );
+    switch (updatedCard.state) {
+      case 'PENDING_ACTIVE':
+      case 'PENDING_VERIFICATION':
+      case 'ACTIVE':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.accepted,
+          creditCard: updatedCard,
+        );
+        break;
+
+      default:
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.error,
+          creditCard: updatedCard,
+        );
+    }
   }
 
   Future<Page<Transaction>> getTransactions(Uri uri) async {
