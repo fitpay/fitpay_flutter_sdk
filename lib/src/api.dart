@@ -800,16 +800,13 @@ class API {
   }
 
   Future<FundingSource> createFundingSource(FundingSource fundingSource) async {
-    User user = await getUser();
-    if (user.links.containsKey('fundingSources')) {
-      var response = await _httpClient.post(user.links['fundingSources'].toUri(),
-          body: jsonEncode(fundingSource.toJson()), headers: await _headers());
+    var response = await _httpClient.post("${_config.apiUrl}/fundingSources",
+        body: jsonEncode(fundingSource.toJson()), headers: await _headers());
 
-      print('New funding source: ${response.body}');
+    print('New funding source: ${response.body}');
 
-      if (response.statusCode == 201) {
-        return FundingSource.fromJson(jsonDecode(response.body));
-      }
+    if (response.statusCode == 200) {
+      return FundingSource.fromJson(jsonDecode(response.body));
     }
     return null;
   }
@@ -818,7 +815,7 @@ class API {
     if (useMockFundingSources) {
       return mockFundingSources;
     }
-    var response = await _httpRetryClient.get(uri, headers: await _headers());
+    var response = await _httpRetryClient.get("${_config.apiUrl}/fundingSources", headers: await _headers());
 
     print('Funding sources: ${response.body}');
 
