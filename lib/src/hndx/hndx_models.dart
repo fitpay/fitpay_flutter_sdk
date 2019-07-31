@@ -624,7 +624,8 @@ class HendricksDeviceInfo extends HndxResult {
   static const DEVICE_MODE_SELF_TEST = 0x00;
   static const DEVICE_MODE_BOOTLOADER = 0x01;
   static const DEVICE_MODE_APP = 0x02;
-  static const SOFTDEVICE_VERSION_TYPE = 0x37;
+  static const SE_ATR = 0x37;
+  static const SOFTDEVICE_VERSION_TYPE = 0x38;
 
   DeviceMode deviceMode;
   String firmwareVersion;
