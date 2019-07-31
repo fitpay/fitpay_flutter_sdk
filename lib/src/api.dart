@@ -599,7 +599,11 @@ class API {
         }
 
         return Page<CreditCard>.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 404) {
+        return null;
       }
+
+      throw response;
     }
 
     return null;
@@ -649,9 +653,11 @@ class API {
 
     if (response.statusCode == 200) {
       return Device.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      return null;
     }
 
-    return null;
+    throw response;
   }
 
   Future<Device> patchDevice(Uri uri, List<JsonPatch> patch) async {
