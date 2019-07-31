@@ -20,7 +20,8 @@ HendricksDeviceInfo _$HendricksDeviceInfoFromJson(Map<String, dynamic> json) {
     ..buildHash = json['buildHash'] as String
     ..buildNumber = json['buildNumber'] as String
     ..buildBranch = json['buildBranch'] as String
-    ..factoryResetIndicator = json['factoryResetIndicator'] as bool;
+    ..factoryResetIndicator = json['factoryResetIndicator'] as bool
+    ..softDeviceVersion = json['softDeviceVersion'] as String;
 }
 
 Map<String, dynamic> _$HendricksDeviceInfoToJson(
@@ -39,6 +40,7 @@ Map<String, dynamic> _$HendricksDeviceInfoToJson(
       'buildNumber': instance.buildNumber,
       'buildBranch': instance.buildBranch,
       'factoryResetIndicator': instance.factoryResetIndicator,
+      'softDeviceVersion': instance.softDeviceVersion,
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {

@@ -219,6 +219,24 @@ const _$ApduExecutionResultStateEnumMap = <ApduExecutionResultState, dynamic>{
   ApduExecutionResultState.notProcessed: 'NOT_PROCESSED'
 };
 
+VerificationMethods _$VerificationMethodsFromJson(Map<String, dynamic> json) {
+  return VerificationMethods(
+    creditCardId: json['creditCardId'] as String,
+    verificationMethods: (json['verificationMethods'] as List)
+        ?.map((e) => e == null
+            ? null
+            : VerificationMethod.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$VerificationMethodsToJson(
+        VerificationMethods instance) =>
+    <String, dynamic>{
+      'creditCardId': instance.creditCardId,
+      'verificationMethods': instance.verificationMethods,
+    };
+
 CreditCard _$CreditCardFromJson(Map<String, dynamic> json) {
   return CreditCard(
     userId: json['userId'] as String,
