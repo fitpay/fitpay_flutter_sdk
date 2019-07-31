@@ -338,7 +338,14 @@ class HndxCardUtils {
     if (pan.length >= 4) {
       pan = pan.substring(pan.length - 4, pan.length);
     }
-    var exp = '$expMo/$expYr';
+
+    if (expYr < 99) {
+      expYr += 2000;
+    }
+
+    var expMoStr = expMo.toString().padLeft(2, '0');
+
+    var exp = '$expMoStr/$expYr';
 
     data.add(encodeString(pan, HNDX_CARD_LASTFOUR_LEN));
     data.add(encodeString(exp, HNDX_CARD_EXP_LEN));
@@ -365,11 +372,11 @@ class HndxCardUtils {
 
     BytesBuilder buf = BytesBuilder();
     Uint8List b = RxBle.stringToChar(s);
+    buf.add(b);
+
     for (var i = 0; i < (maxLength - b.length); i++) {
       buf.addByte(0x00);
     }
-
-    buf.add(b);
     return Uint8List.fromList(buf.toBytes());
   }
 
