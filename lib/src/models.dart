@@ -447,7 +447,17 @@ class CreditCardCreationStatus {
   CreditCardCreationStatus({this.state, this.creditCard, this.statusCode, this.error});
 }
 
-enum CreditCardAcceptTermsState { accepting, accepted, error }
+enum CreditCardAcceptTermsState {
+  accepting,
+  active,
+  pendingActive,
+  pendingVerification,
+  declined,
+  notEligible,
+  provisioningLimitExceeded,
+  provisioningFailed,
+  error,
+}
 
 class CreditCardAcceptTermsStatus {
   final CreditCardAcceptTermsState state;
