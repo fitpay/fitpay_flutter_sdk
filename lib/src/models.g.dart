@@ -751,18 +751,32 @@ FundingSource _$FundingSourceFromJson(Map<String, dynamic> json) {
       accountNumber: json['accountNumber'] as String,
       routingNumber: json['routingNumber'] as String,
       nameOnAccount: json['nameOnAccount'] as String,
+      userId: json['userId'] as String,
+      fundingType:
+          _$enumDecodeNullable(_$FundingTypeEnumMap, json['fundingType']),
       displayName: json['displayName'] as String,
-      accountId: json['accountId'] as String);
+      accountId: json['accountId'] as String,
+      links: (json['_links'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
+      ));
 }
 
 Map<String, dynamic> _$FundingSourceToJson(FundingSource instance) =>
     <String, dynamic>{
+      '_links': instance.links,
       'accountNumber': instance.accountNumber,
       'routingNumber': instance.routingNumber,
       'nameOnAccount': instance.nameOnAccount,
+      'userId': instance.userId,
+      'fundingType': _$FundingTypeEnumMap[instance.fundingType],
       'displayName': instance.displayName,
       'accountId': instance.accountId
     };
+
+const _$FundingTypeEnumMap = <FundingType, dynamic>{
+  FundingType.ACH: 'ACH',
+  FundingType.TOPUP: 'TOPUP'
+};
 
 JsonPatch _$JsonPatchFromJson(Map<String, dynamic> json) {
   return JsonPatch(
