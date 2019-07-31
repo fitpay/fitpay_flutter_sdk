@@ -339,7 +339,7 @@ class HndxCardUtils {
       pan = pan.substring(pan.length - 4, pan.length);
     }
 
-    if (expYr < 99) {
+    if (expYr <= 99) {
       expYr += 2000;
     }
 
