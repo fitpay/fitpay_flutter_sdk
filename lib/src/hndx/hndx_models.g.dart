@@ -38,7 +38,7 @@ Map<String, dynamic> _$HendricksDeviceInfoToJson(
       'buildHash': instance.buildHash,
       'buildNumber': instance.buildNumber,
       'buildBranch': instance.buildBranch,
-      'factoryResetIndicator': instance.factoryResetIndicator
+      'factoryResetIndicator': instance.factoryResetIndicator,
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
