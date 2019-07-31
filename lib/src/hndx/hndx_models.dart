@@ -624,6 +624,7 @@ class HendricksDeviceInfo extends HndxResult {
   static const DEVICE_MODE_SELF_TEST = 0x00;
   static const DEVICE_MODE_BOOTLOADER = 0x01;
   static const DEVICE_MODE_APP = 0x02;
+  static const SOFTDEVICE_VERSION_TYPE = 0x37;
 
   DeviceMode deviceMode;
   String firmwareVersion;
@@ -638,6 +639,7 @@ class HendricksDeviceInfo extends HndxResult {
   String buildNumber;
   String buildBranch;
   bool factoryResetIndicator;
+  String softDeviceVersion;
 
   HendricksDeviceInfo();
 
@@ -665,6 +667,7 @@ class HendricksDeviceInfo extends HndxResult {
     info.d21AppVersion = _parseVersion(parsedPing[D21_APP_VERSION_TYPE]);
     info.d21BootloaderVersion = _parseVersion(parsedPing[D21_BOOTLOADER_VERSION_TYPE]);
     info.hardwareVersion = _parseVersion(parsedPing[NRF_HARDWARE_VERSION_TYPE]);
+    info.softDeviceVersion = _parseVersion(parsedPing[SOFTDEVICE_VERSION_TYPE]);
 
     Uint8List deviceIdBytes = parsedPing[DEVICE_ID_TYPE];
     info.deviceId =
