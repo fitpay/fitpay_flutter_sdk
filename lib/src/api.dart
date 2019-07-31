@@ -888,6 +888,18 @@ class API {
     throw response.statusCode;
   }
 
+  Future<KycApplication> getKycApplication(Uri uri) async {
+    var response = await _httpClient.get("https://${uri.toString()}", headers: await _headers());
+
+    print("Kyc Application ${response.body}");
+
+    if (response.statusCode ==  200) {
+        return KycApplication.fromJson(jsonDecode(response.body));
+    }
+
+    return null;
+  }
+
   Future<Map<String, String>> _headers({bool includeFpKeyId = true, accept = 'application/json'}) async {
     Map<String, String> headers = Map<String, String>();
 

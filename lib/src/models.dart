@@ -863,3 +863,58 @@ class PaymentDeviceInformation {
 
   Map<String, dynamic> toJson() => _$PaymentDeviceInformationToJson(this);
 }
+
+enum KycApplicationState {NEW, APPROVED, DECLINED}
+
+@JsonSerializable(nullable: true)
+class KycApplication extends BaseResource {
+  final String applicationId;
+  final KycApplicationState applicationState;
+  final String accountId;
+  final String cardId;
+  final String userId;
+  final String programId;
+  final String dateSubmitedTs;
+  final String dateCreatedTs;
+  final String lastModifiedTs;
+  final List<KycApplicationSteps> kycSteps;
+  final int dateSubmitedTsEpoch;
+  final int dateCreatedTsEpoch;
+  final int lastModifiedTsEpoch;  
+
+  KycApplication({
+    this.applicationId,
+    this.applicationState,
+    this.accountId,
+    this.cardId,
+    this.userId,
+    this.programId,
+    this.dateSubmitedTs,
+    this.dateCreatedTs,
+    this.lastModifiedTs,
+    this.kycSteps,
+    this.dateSubmitedTsEpoch,
+    this.dateCreatedTsEpoch,
+    this.lastModifiedTsEpoch,
+    Map<String, Link> links
+  }):super(links: links);
+
+  factory KycApplication.fromJson(Map<String, dynamic> json) => _$KycApplicationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KycApplicationToJson(this);
+}
+
+@JsonSerializable(nullable: true)
+class KycApplicationSteps extends BaseResource {
+  final String stepId;
+  final String name;
+  final String type;
+  final String value;
+  final int page;
+
+  KycApplicationSteps({this.stepId, this.page, this.name, this.type, this.value});
+
+  factory KycApplicationSteps.fromJson(Map<String, dynamic> json) => _$KycApplicationStepsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KycApplicationStepsToJson(this);
+}
