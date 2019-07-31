@@ -256,6 +256,16 @@ enum CausedBy {
 }
 
 @JsonSerializable(nullable: true)
+class VerificationMethods extends BaseResource {
+  final String creditCardId;
+  final List<VerificationMethod> verificationMethods;
+
+  VerificationMethods({this.creditCardId, this.verificationMethods});
+
+  factory VerificationMethods.fromJson(Map<String, dynamic> json) => _$VerificationMethodsFromJson(json);
+}
+
+@JsonSerializable(nullable: true)
 class CreditCard extends BaseResource {
   final String userId;
   final String creditCardId;

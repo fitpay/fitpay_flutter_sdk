@@ -557,9 +557,23 @@ class API {
 
     if (response.statusCode == 200) {
       return CreditCard.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      return null;
     }
 
-    return null;
+    throw response;
+  }
+
+  Future<VerificationMethods> getVerificationMethods(Uri uri) async {
+    var response = await _httpRetryClient.get(uri, headers: await _headers());
+
+    if (response.statusCode == 200) {
+      return VerificationMethods.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      return null;
+    }
+
+    throw response;
   }
 
   /// Returns a [Page] of [CreditCard] instances for the current authenticated
