@@ -857,11 +857,11 @@ Map<String, dynamic> _$PaymentDeviceInformationToJson(
       'secureElement': instance.secureElement,
     };
 
-KycApplication _$KycApplicationFromJson(Map<String, dynamic> json) {
-  return KycApplication(
+Application _$ApplicationFromJson(Map<String, dynamic> json) {
+  return Application(
     applicationId: json['applicationId'] as String,
     applicationState: _$enumDecodeNullable(
-        _$KycApplicationStateEnumMap, json['applicationState']),
+        _$ApplicationStateEnumMap, json['applicationState']),
     accountId: json['accountId'] as String,
     cardId: json['cardId'] as String,
     userId: json['userId'] as String,
@@ -870,9 +870,8 @@ KycApplication _$KycApplicationFromJson(Map<String, dynamic> json) {
     dateCreatedTs: json['dateCreatedTs'] as String,
     lastModifiedTs: json['lastModifiedTs'] as String,
     kycSteps: (json['kycSteps'] as List)
-        ?.map((e) => e == null
-            ? null
-            : KycApplicationSteps.fromJson(e as Map<String, dynamic>))
+        ?.map((e) =>
+            e == null ? null : KycSteps.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
     dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
@@ -883,12 +882,11 @@ KycApplication _$KycApplicationFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$KycApplicationToJson(KycApplication instance) =>
+Map<String, dynamic> _$ApplicationToJson(Application instance) =>
     <String, dynamic>{
       '_links': instance.links,
       'applicationId': instance.applicationId,
-      'applicationState':
-          _$KycApplicationStateEnumMap[instance.applicationState],
+      'applicationState': _$ApplicationStateEnumMap[instance.applicationState],
       'accountId': instance.accountId,
       'cardId': instance.cardId,
       'userId': instance.userId,
@@ -902,14 +900,14 @@ Map<String, dynamic> _$KycApplicationToJson(KycApplication instance) =>
       'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
     };
 
-const _$KycApplicationStateEnumMap = <KycApplicationState, dynamic>{
-  KycApplicationState.NEW: 'NEW',
-  KycApplicationState.APPROVED: 'APPROVED',
-  KycApplicationState.DECLINED: 'DECLINED'
+const _$ApplicationStateEnumMap = <ApplicationState, dynamic>{
+  ApplicationState.NEW: 'NEW',
+  ApplicationState.APPROVED: 'APPROVED',
+  ApplicationState.DECLINED: 'DECLINED'
 };
 
-KycApplicationSteps _$KycApplicationStepsFromJson(Map<String, dynamic> json) {
-  return KycApplicationSteps(
+KycSteps _$KycStepsFromJson(Map<String, dynamic> json) {
+  return KycSteps(
     stepId: json['stepId'] as String,
     page: json['page'] as int,
     name: json['name'] as String,
@@ -918,9 +916,7 @@ KycApplicationSteps _$KycApplicationStepsFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$KycApplicationStepsToJson(
-        KycApplicationSteps instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$KycStepsToJson(KycSteps instance) => <String, dynamic>{
       'stepId': instance.stepId,
       'name': instance.name,
       'type': instance.type,

@@ -874,12 +874,12 @@ class PaymentDeviceInformation {
   Map<String, dynamic> toJson() => _$PaymentDeviceInformationToJson(this);
 }
 
-enum KycApplicationState {NEW, APPROVED, DECLINED}
+enum ApplicationState {NEW, APPROVED, DECLINED}
 
 @JsonSerializable(nullable: true)
-class KycApplication extends BaseResource {
+class Application extends BaseResource {
   final String applicationId;
-  final KycApplicationState applicationState;
+  final ApplicationState applicationState;
   final String accountId;
   final String cardId;
   final String userId;
@@ -887,12 +887,12 @@ class KycApplication extends BaseResource {
   final String dateSubmitedTs;
   final String dateCreatedTs;
   final String lastModifiedTs;
-  final List<KycApplicationSteps> kycSteps;
+  final List<KycSteps> kycSteps;
   final int dateSubmitedTsEpoch;
   final int dateCreatedTsEpoch;
   final int lastModifiedTsEpoch;  
 
-  KycApplication({
+  Application({
     this.applicationId,
     this.applicationState,
     this.accountId,
@@ -909,22 +909,22 @@ class KycApplication extends BaseResource {
     Map<String, Link> links
   }):super(links: links);
 
-  factory KycApplication.fromJson(Map<String, dynamic> json) => _$KycApplicationFromJson(json);
+  factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
 
-  Map<String, dynamic> toJson() => _$KycApplicationToJson(this);
+  Map<String, dynamic> toJson() => _$ApplicationToJson(this);
 }
 
 @JsonSerializable(nullable: true)
-class KycApplicationSteps extends BaseResource {
+class KycSteps extends BaseResource {
   final String stepId;
   final String name;
   final String type;
   final String value;
   final int page;
 
-  KycApplicationSteps({this.stepId, this.page, this.name, this.type, this.value});
+  KycSteps({this.stepId, this.page, this.name, this.type, this.value});
 
-  factory KycApplicationSteps.fromJson(Map<String, dynamic> json) => _$KycApplicationStepsFromJson(json);
+  factory KycSteps.fromJson(Map<String, dynamic> json) => _$KycStepsFromJson(json);
 
-  Map<String, dynamic> toJson() => _$KycApplicationStepsToJson(this);
+  Map<String, dynamic> toJson() => _$KycStepsToJson(this);
 }
