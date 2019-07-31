@@ -870,8 +870,9 @@ Application _$ApplicationFromJson(Map<String, dynamic> json) {
     dateCreatedTs: json['dateCreatedTs'] as String,
     lastModifiedTs: json['lastModifiedTs'] as String,
     kycSteps: (json['kycSteps'] as List)
-        ?.map((e) =>
-            e == null ? null : KycSteps.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null
+            ? null
+            : ApplicationSteps.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
     dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
@@ -906,8 +907,8 @@ const _$ApplicationStateEnumMap = <ApplicationState, dynamic>{
   ApplicationState.DECLINED: 'DECLINED'
 };
 
-KycSteps _$KycStepsFromJson(Map<String, dynamic> json) {
-  return KycSteps(
+ApplicationSteps _$ApplicationStepsFromJson(Map<String, dynamic> json) {
+  return ApplicationSteps(
     stepId: json['stepId'] as String,
     page: json['page'] as int,
     name: json['name'] as String,
@@ -916,7 +917,8 @@ KycSteps _$KycStepsFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$KycStepsToJson(KycSteps instance) => <String, dynamic>{
+Map<String, dynamic> _$ApplicationStepsToJson(ApplicationSteps instance) =>
+    <String, dynamic>{
       'stepId': instance.stepId,
       'name': instance.name,
       'type': instance.type,

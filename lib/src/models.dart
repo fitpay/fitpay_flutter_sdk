@@ -887,7 +887,7 @@ class Application extends BaseResource {
   final String dateSubmitedTs;
   final String dateCreatedTs;
   final String lastModifiedTs;
-  final List<KycSteps> kycSteps;
+  final List<ApplicationSteps> kycSteps;
   final int dateSubmitedTsEpoch;
   final int dateCreatedTsEpoch;
   final int lastModifiedTsEpoch;  
@@ -915,16 +915,16 @@ class Application extends BaseResource {
 }
 
 @JsonSerializable(nullable: true)
-class KycSteps extends BaseResource {
+class ApplicationSteps extends BaseResource {
   final String stepId;
   final String name;
   final String type;
   final String value;
   final int page;
 
-  KycSteps({this.stepId, this.page, this.name, this.type, this.value});
+  ApplicationSteps({this.stepId, this.page, this.name, this.type, this.value});
 
-  factory KycSteps.fromJson(Map<String, dynamic> json) => _$KycStepsFromJson(json);
+  factory ApplicationSteps.fromJson(Map<String, dynamic> json) => _$ApplicationStepsFromJson(json);
 
-  Map<String, dynamic> toJson() => _$KycStepsToJson(this);
+  Map<String, dynamic> toJson() => _$ApplicationStepsToJson(this);
 }

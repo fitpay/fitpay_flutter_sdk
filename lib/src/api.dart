@@ -908,10 +908,10 @@ class API {
     throw response.statusCode;
   }
 
-  Future<Application> getKycApplication(Uri uri) async {
-    var response = await _httpClient.get("https://${uri.toString()}", headers: await _headers());
+  Future<Application> getApplication(Uri uri) async {
+    var response = await _httpClient.get(uri, headers: await _headers());
 
-    print("Kyc Application ${response.body}");
+    print("Application ${response.body}");
 
     if (response.statusCode ==  200) {
         return Application.fromJson(jsonDecode(response.body));
