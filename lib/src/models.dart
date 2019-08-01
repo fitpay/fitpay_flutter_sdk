@@ -291,10 +291,11 @@ class CreditCard extends BaseResource {
       this.cardMetaData,
       this.causedBy,
       this.termsAssetReferences,
-      this.verificationMethods,
+      verificationMethods,
       Map<String, APDUPackage> offlineSeActions,
       Map<String, Link> links})
-      : this.offlineSeActions = offlineSeActions != null ? offlineSeActions : {},
+      : this.offlineSeActions = offlineSeActions ?? {},
+        this.verificationMethods = verificationMethods ?? [],
         super(links: links);
 
   Future<Map<String, dynamic>> get acceptTermsState async {
