@@ -293,10 +293,11 @@ class CreditCard extends BaseResource {
       this.cardMetaData,
       this.causedBy,
       this.termsAssetReferences,
-      this.verificationMethods,
+      verificationMethods,
       Map<String, APDUPackage> offlineSeActions,
       Map<String, Link> links})
-      : this.offlineSeActions = offlineSeActions != null ? offlineSeActions : {},
+      : this.offlineSeActions = offlineSeActions ?? {},
+        this.verificationMethods = verificationMethods ?? [],
         super(links: links);
 
   Future<Map<String, dynamic>> get acceptTermsState async {
@@ -449,7 +450,17 @@ class CreditCardCreationStatus {
   CreditCardCreationStatus({this.state, this.creditCard, this.statusCode, this.error});
 }
 
-enum CreditCardAcceptTermsState { accepting, accepted, error }
+enum CreditCardAcceptTermsState {
+  accepting,
+  active,
+  pendingActive,
+  pendingVerification,
+  declined,
+  notEligible,
+  provisioningLimitExceeded,
+  provisioningFailed,
+  error,
+}
 
 class CreditCardAcceptTermsStatus {
   final CreditCardAcceptTermsState state;

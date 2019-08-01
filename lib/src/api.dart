@@ -8,7 +8,6 @@ import 'dart:async';
 import 'package:uri/uri.dart';
 import 'package:eventsource/eventsource.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:fitpay_flutter_sdk/src/mock_gpr_account.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_transaction.dart';
 import 'package:fitpay_flutter_sdk/src/mock_funding_source.dart';
 import 'package:http_retry/http_retry.dart';
@@ -435,9 +434,24 @@ class API {
     return null;
   }
 
-  Stream<CreditCardAcceptTermsStatus> acceptCreditCardTerms(CreditCard card) async* {
+  /// Accept issuer terms for the specified [CreditCard], mangaging the FitPay API workflow yielding [CreditCardAcceptTermsStatus]
+  /// instances to reflect the current stage of the workflow.
+  ///
+  /// [waitForStateTransitionFrom] - This method will wait for the underlying card to change into one of these
+  /// states before moving on/yielding values
+  Stream<CreditCardAcceptTermsStatus> acceptCreditCardTerms(CreditCard card,
+      {waitForStateTransitionFrom = const [
+        'PENDING_ACTIVE',
+        'PENDING_VERIFICATION',
+        'ACTIVE',
+        'ERROR',
+        'DECLINED',
+        'NOT_ELIGIBLE',
+        'DELETED'
+      ]}) async* {
     var headers = await _headers();
 
+    // reconstruct the acceptTerms link
     String uri;
     if (card.links['acceptTerms'].templated) {
       UriTemplate uriTemplate = UriTemplate(card.links['acceptTerms'].href);
@@ -463,11 +477,28 @@ class API {
     if (response.statusCode >= 400) {
       print('card add failed: ${response.body}');
 
-      yield CreditCardAcceptTermsStatus(
-        state: CreditCardAcceptTermsState.error,
-        statusCode: response.statusCode,
-        error: ApiError.fromJson(jsonDecode(response.body)),
-      );
+      ApiError error = ApiError.fromJson(jsonDecode(response.body));
+
+      if (response.statusCode == 403 || (error.description != null && error.description.indexOf('not eligible') >= 0)) {
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.notEligible,
+          statusCode: response.statusCode,
+          error: error,
+        );
+      } else if (response.statusCode == 404) {
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.provisioningFailed,
+          statusCode: response.statusCode,
+          error: error,
+        );
+      } else {
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.error,
+          statusCode: response.statusCode,
+          error: error,
+        );
+      }
+
       return;
     }
 
@@ -489,17 +520,7 @@ class API {
     var cardUrl = updatedCard.links['self'].href;
 
     // states we're waiting for the card to transition into after accept terms
-    var transitionStates = [
-      'PENDING_ACTIVE',
-      'PENDING_VERIFICATION',
-      'ACTIVE',
-      'ERROR',
-      'DECLINED',
-      'NOT_ELIGIBLE',
-      'DELETED'
-    ];
-
-    if (!transitionStates.contains(updatedCard.state)) {
+    if (!waitForStateTransitionFrom.contains(updatedCard.state)) {
       updatedCard = await Observable.race([
         _sse
             .where((event) => event.type == 'CREDITCARD_PROVISION_FAILED')
@@ -510,7 +531,7 @@ class API {
         Observable.periodic(Duration(seconds: 5))
             .asyncMap((_) => _httpRetryClient.get(cardUrl, headers: headers))
             .map((response) => CreditCard.fromJson(jsonDecode(response.body)))
-            .where((card) => transitionStates.contains(card.state)),
+            .where((card) => waitForStateTransitionFrom.contains(card.state)),
       ]).first;
 
       print('polling completed, current card state: ${updatedCard.state}');
@@ -522,12 +543,59 @@ class API {
 
     switch (updatedCard.state) {
       case 'PENDING_ACTIVE':
-      case 'PENDING_VERIFICATION':
-      case 'ACTIVE':
         yield CreditCardAcceptTermsStatus(
-          state: CreditCardAcceptTermsState.accepted,
+          state: CreditCardAcceptTermsState.pendingActive,
           creditCard: updatedCard,
         );
+        break;
+
+      case 'PENDING_VERIFICATION':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.pendingVerification,
+          creditCard: updatedCard,
+        );
+        break;
+
+      case 'ACTIVE':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.active,
+          creditCard: updatedCard,
+        );
+        break;
+
+      case 'DECLINED':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.declined,
+          creditCard: updatedCard,
+        );
+        break;
+
+      case 'NOT_ELIGIBLE':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.notEligible,
+          creditCard: updatedCard,
+        );
+        break;
+
+      case 'DELETED':
+        yield CreditCardAcceptTermsStatus(
+          state: CreditCardAcceptTermsState.provisioningFailed,
+          creditCard: updatedCard,
+        );
+        break;
+
+      case 'ERROR':
+        if (updatedCard.reason == 'PROVISIONING_LIMIT_REACHED') {
+          yield CreditCardAcceptTermsStatus(
+            state: CreditCardAcceptTermsState.provisioningLimitExceeded,
+            creditCard: updatedCard,
+          );
+        } else {
+          yield CreditCardAcceptTermsStatus(
+            state: CreditCardAcceptTermsState.provisioningFailed,
+            creditCard: updatedCard,
+          );
+        }
         break;
 
       default:
