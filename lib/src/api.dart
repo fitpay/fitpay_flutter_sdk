@@ -757,6 +757,8 @@ class API {
   }
 
   Future<void> deleteDevice(Uri uri) async {
+    if (uri == null) return;
+
     await _httpRetryClient.delete(uri, headers: await _headers(includeFpKeyId: false));
   }
 
