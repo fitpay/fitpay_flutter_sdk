@@ -909,7 +909,7 @@ class API {
   }
 
   Future<Application> getApplication(Uri uri) async {
-    var response = await _httpClient.get(uri, headers: await _headers());
+    var response = await _httpClient.get('https://${uri.toString()}', headers: await _headers());
 
     print("Application ${response.body}");
 
