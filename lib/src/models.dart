@@ -899,3 +899,58 @@ class PaymentDeviceInformation {
 
   Map<String, dynamic> toJson() => _$PaymentDeviceInformationToJson(this);
 }
+
+enum ApplicationState {NEW, APPROVED, DECLINED}
+
+@JsonSerializable(nullable: true)
+class Application extends BaseResource {
+  final String applicationId;
+  final ApplicationState applicationState;
+  final String accountId;
+  final String cardId;
+  final String userId;
+  final String programId;
+  final String dateSubmitedTs;
+  final String dateCreatedTs;
+  final String lastModifiedTs;
+  final List<ApplicationSteps> kycSteps;
+  final int dateSubmitedTsEpoch;
+  final int dateCreatedTsEpoch;
+  final int lastModifiedTsEpoch;  
+
+  Application({
+    this.applicationId,
+    this.applicationState,
+    this.accountId,
+    this.cardId,
+    this.userId,
+    this.programId,
+    this.dateSubmitedTs,
+    this.dateCreatedTs,
+    this.lastModifiedTs,
+    this.kycSteps,
+    this.dateSubmitedTsEpoch,
+    this.dateCreatedTsEpoch,
+    this.lastModifiedTsEpoch,
+    Map<String, Link> links
+  }):super(links: links);
+
+  factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApplicationToJson(this);
+}
+
+@JsonSerializable(nullable: true)
+class ApplicationSteps extends BaseResource {
+  final String stepId;
+  final String name;
+  final String type;
+  final String value;
+  final int page;
+
+  ApplicationSteps({this.stepId, this.page, this.name, this.type, this.value});
+
+  factory ApplicationSteps.fromJson(Map<String, dynamic> json) => _$ApplicationStepsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApplicationStepsToJson(this);
+}
