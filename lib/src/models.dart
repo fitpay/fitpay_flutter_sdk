@@ -143,6 +143,8 @@ class _Converter<T> implements JsonConverter<T, Object> {
       return json == null ? null : Device.fromJson(json) as T;
     } else if (T == GPRAccount) {
       return json == null ? null : GPRAccount.fromJson(json) as T;
+    } else if (T == FundingSource) {
+      return json == null ? null : FundingSource.fromJson(json) as T;
     } else if (T == Commit) {
       return json == null ? null : Commit.fromJson(json) as T;
     } else if (T == GPRTransaction) {
@@ -291,10 +293,11 @@ class CreditCard extends BaseResource {
       this.cardMetaData,
       this.causedBy,
       this.termsAssetReferences,
-      this.verificationMethods,
+      verificationMethods,
       Map<String, APDUPackage> offlineSeActions,
       Map<String, Link> links})
-      : this.offlineSeActions = offlineSeActions != null ? offlineSeActions : {},
+      : this.offlineSeActions = offlineSeActions ?? {},
+        this.verificationMethods = verificationMethods ?? [],
         super(links: links);
 
   Future<Map<String, dynamic>> get acceptTermsState async {
@@ -447,7 +450,17 @@ class CreditCardCreationStatus {
   CreditCardCreationStatus({this.state, this.creditCard, this.statusCode, this.error});
 }
 
-enum CreditCardAcceptTermsState { accepting, accepted, error }
+enum CreditCardAcceptTermsState {
+  accepting,
+  active,
+  pendingActive,
+  pendingVerification,
+  declined,
+  notEligible,
+  provisioningLimitExceeded,
+  provisioningFailed,
+  error,
+}
 
 class CreditCardAcceptTermsStatus {
   final CreditCardAcceptTermsState state;
@@ -806,15 +819,28 @@ class GPRTransaction extends BaseResource {
   Map<String, dynamic> toJson() => _$GPRTransactionToJson(this);
 }
 
+enum FundingType { ACH, TOPUP }
+
 @JsonSerializable(nullable: true)
 class FundingSource extends BaseResource {
   final String accountNumber;
   final String routingNumber;
   final String nameOnAccount;
+  final String userId;
+  final FundingType fundingType;
   final String displayName;
   final String accountId;
 
-  FundingSource({this.accountNumber, this.routingNumber, this.nameOnAccount, this.displayName, this.accountId});
+  FundingSource(
+    {this.accountNumber, 
+    this.routingNumber, 
+    this.nameOnAccount, 
+    this.userId, 
+    this.fundingType, 
+    this.displayName, 
+    this.accountId,
+    Map<String, Link> links})
+    : super(links: links);
 
   factory FundingSource.fromJson(Map<String, dynamic> json) => _$FundingSourceFromJson(json);
 

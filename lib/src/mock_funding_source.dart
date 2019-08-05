@@ -3,6 +3,8 @@ import 'models.dart';
 FundingSource mockFundingSource = FundingSource(accountNumber: "12345678",
                                                 routingNumber: "123456789",
                                                 nameOnAccount: "John Doe",
+                                                userId: "123456",
+                                                fundingType: FundingType.ACH,
                                                 displayName: "John's Checkings",
                                                 accountId: "f1b53bd9-5d56-4480-a15a-1eed06cdc203",); 
 
