@@ -33,7 +33,7 @@ List<GPRTransaction> getGPRTransactions() {
   for (int i = 0; i < copies; i++) {
     mockTransactionMap['amount'] = double.parse((rng.nextDouble()*50).toStringAsFixed(2));
     mockTransactionMap['merchantName'] = merchants[rng.nextInt(merchants.length)];
-    mockTransactionMap['transactionTime'] = times[rng.nextInt(times.length)];
+    mockTransactionMap['transactionTime'] = (i < 4) ? times[2] : ((i < 7) ? times[1] : times[0]);
     gprTransactions.add(GPRTransaction.fromJson(mockTransactionMap));
   }
   return gprTransactions;
