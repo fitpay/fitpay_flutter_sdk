@@ -819,8 +819,6 @@ class GPRTransaction extends BaseResource {
   Map<String, dynamic> toJson() => _$GPRTransactionToJson(this);
 }
 
-enum FundingType { ACH, TOPUP }
-
 @JsonSerializable(nullable: true)
 class FundingSource extends BaseResource {
   final String accountNumber;
@@ -851,7 +849,7 @@ enum FundingType {
   @JsonValue('TOPUP')
   topUp,
   @JsonValue('ACH')
-  scheduled,
+  ach,
 }
 
 enum FundingState {
@@ -872,9 +870,10 @@ class Funding extends BaseResource {
   String description;
   double fundingAmount;
 
-  static String dateToJson(DateTime date) => date.toUtc().toIso8601String();
+  static String dateToJson(DateTime date) => (date?.toUtc()?.toIso8601String()) ?? '';
+  static DateTime dateFromJson(String str) => (str != null && !str.isEmpty) ? DateTime.parse(str) : null;
   @JsonKey(
-    fromJson: DateTime.parse,
+    fromJson: dateFromJson,
     toJson: dateToJson
   )
   DateTime nextFundingTs;
@@ -916,7 +915,7 @@ enum JsonPatchOp {
 class JsonPatch {
   final JsonPatchOp op;
   final String path;
-  final String value;
+  final Object value;
 
   JsonPatch({this.op, this.path, this.value});
 
