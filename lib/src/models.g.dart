@@ -906,3 +906,72 @@ Map<String, dynamic> _$PaymentDeviceInformationToJson(
       'deviceType': _$DeviceTypeEnumMap[instance.deviceType],
       'secureElement': instance.secureElement,
     };
+
+Application _$ApplicationFromJson(Map<String, dynamic> json) {
+  return Application(
+    applicationId: json['applicationId'] as String,
+    applicationState: _$enumDecodeNullable(
+        _$ApplicationStateEnumMap, json['applicationState']),
+    accountId: json['accountId'] as String,
+    cardId: json['cardId'] as String,
+    userId: json['userId'] as String,
+    programId: json['programId'] as String,
+    dateSubmitedTs: json['dateSubmitedTs'] as String,
+    dateCreatedTs: json['dateCreatedTs'] as String,
+    lastModifiedTs: json['lastModifiedTs'] as String,
+    kycSteps: (json['kycSteps'] as List)
+        ?.map((e) => e == null
+            ? null
+            : ApplicationSteps.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+    dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
+    dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
+    lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as int,
+    links: (json['_links'] as Map<String, dynamic>).map(
+      (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
+    ),
+  );
+}
+
+Map<String, dynamic> _$ApplicationToJson(Application instance) =>
+    <String, dynamic>{
+      '_links': instance.links,
+      'applicationId': instance.applicationId,
+      'applicationState': _$ApplicationStateEnumMap[instance.applicationState],
+      'accountId': instance.accountId,
+      'cardId': instance.cardId,
+      'userId': instance.userId,
+      'programId': instance.programId,
+      'dateSubmitedTs': instance.dateSubmitedTs,
+      'dateCreatedTs': instance.dateCreatedTs,
+      'lastModifiedTs': instance.lastModifiedTs,
+      'kycSteps': instance.kycSteps,
+      'dateSubmitedTsEpoch': instance.dateSubmitedTsEpoch,
+      'dateCreatedTsEpoch': instance.dateCreatedTsEpoch,
+      'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
+    };
+
+const _$ApplicationStateEnumMap = <ApplicationState, dynamic>{
+  ApplicationState.NEW: 'NEW',
+  ApplicationState.APPROVED: 'APPROVED',
+  ApplicationState.DECLINED: 'DECLINED'
+};
+
+ApplicationSteps _$ApplicationStepsFromJson(Map<String, dynamic> json) {
+  return ApplicationSteps(
+    stepId: json['stepId'] as String,
+    page: json['page'] as int,
+    name: json['name'] as String,
+    type: json['type'] as String,
+    value: json['value'] as String,
+  );
+}
+
+Map<String, dynamic> _$ApplicationStepsToJson(ApplicationSteps instance) =>
+    <String, dynamic>{
+      'stepId': instance.stepId,
+      'name': instance.name,
+      'type': instance.type,
+      'value': instance.value,
+      'page': instance.page,
+    };
