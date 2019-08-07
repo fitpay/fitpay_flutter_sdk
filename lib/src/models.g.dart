@@ -850,23 +850,6 @@ Map<String, dynamic> _$FundingToJson(Funding instance) => <String, dynamic>{
       'fundingType': instance.fundingType,
     };
 
-Funding _$FundingFromJson(Map<String, dynamic> json) {
-  return Funding(
-    fundingState: json['fundingState'],
-    fundingId: json['fundingId'] as String,
-    accountId: json['accountId'] as String,
-    fundingSourceId: json['fundingSourceId'] as String,
-    description: json['description'] as String,
-    fundingAmount: (json['fundingAmount'] as num)?.toDouble(),
-    nextFundingTs: DateTime.parse(json['nextFundingTs'] as String),
-    isRecurring: json['isRecurring'] as bool,
-    lowAmountTopUp: (json['lowAmountTopUp'] as num)?.toDouble(),
-    topAmountTopUp: (json['topAmountTopUp'] as num)?.toDouble(),
-    displayName: json['displayName'] as String,
-    fundingType: json['fundingType'],
-  );
-}
-
 JsonPatch _$JsonPatchFromJson(Map<String, dynamic> json) {
   return JsonPatch(
     op: _$enumDecodeNullable(_$JsonPatchOpEnumMap, json['op']),
