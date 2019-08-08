@@ -1035,11 +1035,33 @@ class API {
 
     print("Application ${response.body}");
 
-    if (response.statusCode ==  200) {
-        return Application.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      return Application.fromJson(jsonDecode(response.body));
     }
 
     return null;
+  }
+
+  Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
+    var body = json.encode([
+      {'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}
+    ]);
+
+    var response = await http.patch("https://${uri.toString()}", body: body, headers: await _headers());
+
+    print("Patching application: ${response.statusCode}: ${response.body}");
+  }
+
+  Future<Application> submitApplication(Uri uri) async {
+    var response = await _httpClient.post("https://${uri.toString()}", headers: await _headers());
+
+    print('Application submission response ${response.statusCode}: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return Application.fromJson(jsonDecode(response.body));
+    }
+
+    throw response.statusCode;
   }
 
   Future<Map<String, String>> _headers({bool includeFpKeyId = true, accept = 'application/json'}) async {

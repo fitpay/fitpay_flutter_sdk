@@ -254,7 +254,11 @@ CreditCard _$CreditCardFromJson(Map<String, dynamic> json) {
         ?.map(
             (e) => e == null ? null : Asset.fromJson(e as Map<String, dynamic>))
         ?.toList(),
-    verificationMethods: json['verificationMethods'],
+    verificationMethods: (json['verificationMethods'] as List)
+        ?.map((e) => e == null
+            ? null
+            : VerificationMethod.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
     offlineSeActions: (json['offlineSeActions'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k,
           e == null ? null : APDUPackage.fromJson(e as Map<String, dynamic>)),
@@ -783,8 +787,7 @@ FundingSource _$FundingSourceFromJson(Map<String, dynamic> json) {
     routingNumber: json['routingNumber'] as String,
     nameOnAccount: json['nameOnAccount'] as String,
     userId: json['userId'] as String,
-    fundingType:
-        _$enumDecodeNullable(_$FundingTypeEnumMap, json['fundingType']),
+    fundingType: json['fundingType'],
     displayName: json['displayName'] as String,
     accountId: json['accountId'] as String,
     links: (json['_links'] as Map<String, dynamic>).map(
@@ -800,55 +803,44 @@ Map<String, dynamic> _$FundingSourceToJson(FundingSource instance) =>
       'routingNumber': instance.routingNumber,
       'nameOnAccount': instance.nameOnAccount,
       'userId': instance.userId,
-      'fundingType': _$FundingTypeEnumMap[instance.fundingType],
+      'fundingType': instance.fundingType,
       'displayName': instance.displayName,
       'accountId': instance.accountId,
     };
 
-const _$FundingTypeEnumMap = <FundingType, dynamic>{
-  FundingType.topUp: 'TOPUP',
-  FundingType.ach: 'ACH'
-};
-
 Funding _$FundingFromJson(Map<String, dynamic> json) {
   return Funding(
-    fundingState:
-        _$enumDecodeNullable(_$FundingStateEnumMap, json['fundingState']),
+    fundingState: json['fundingState'],
     fundingId: json['fundingId'] as String,
     accountId: json['accountId'] as String,
     fundingSourceId: json['fundingSourceId'] as String,
     description: json['description'] as String,
     fundingAmount: (json['fundingAmount'] as num)?.toDouble(),
-    nextFundingTs: Funding.dateFromJson(json['nextFundingTs'] as String),
+    nextFundingTs: json['nextFundingTs'] == null
+        ? null
+        : DateTime.parse(json['nextFundingTs'] as String),
     isRecurring: json['isRecurring'] as bool,
     lowAmountTopUp: (json['lowAmountTopUp'] as num)?.toDouble(),
     topAmountTopUp: (json['topAmountTopUp'] as num)?.toDouble(),
     displayName: json['displayName'] as String,
-    fundingType:
-        _$enumDecodeNullable(_$FundingTypeEnumMap, json['fundingType']),
+    fundingType: json['fundingType'],
   );
 }
 
 Map<String, dynamic> _$FundingToJson(Funding instance) => <String, dynamic>{
-      'fundingState': _$FundingStateEnumMap[instance.fundingState],
+      'fundingState': instance.fundingState,
       'fundingId': instance.fundingId,
       'accountId': instance.accountId,
       'fundingSourceId': instance.fundingSourceId,
       'description': instance.description,
       'fundingAmount': instance.fundingAmount,
-      'nextFundingTs': Funding.dateToJson(instance.nextFundingTs),
+      'nextFundingTs': instance.nextFundingTs?.toIso8601String(),
       'isRecurring': instance.isRecurring,
       'lowAmountTopUp': instance.lowAmountTopUp,
       'topAmountTopUp': instance.topAmountTopUp,
       'displayName': instance.displayName,
-      'fundingType': _$FundingTypeEnumMap[instance.fundingType],
+      'fundingType': instance.fundingType,
     };
-
-const _$FundingStateEnumMap = <FundingState, dynamic>{
-  FundingState.ACTIVE: 'ACTIVE',
-  FundingState.STOPPED: 'STOPPED',
-  FundingState.ERROR: 'ERROR'
-};
 
 JsonPatch _$JsonPatchFromJson(Map<String, dynamic> json) {
   return JsonPatch(

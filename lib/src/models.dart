@@ -293,7 +293,7 @@ class CreditCard extends BaseResource {
       this.cardMetaData,
       this.causedBy,
       this.termsAssetReferences,
-      verificationMethods,
+      List<VerificationMethod> verificationMethods,
       Map<String, APDUPackage> offlineSeActions,
       Map<String, Link> links})
       : this.offlineSeActions = offlineSeActions ?? {},
@@ -830,19 +830,92 @@ class FundingSource extends BaseResource {
   final String accountId;
 
   FundingSource(
-    {this.accountNumber, 
-    this.routingNumber, 
-    this.nameOnAccount, 
-    this.userId, 
-    this.fundingType, 
-    this.displayName, 
-    this.accountId,
-    Map<String, Link> links})
-    : super(links: links);
+      {this.accountNumber,
+      this.routingNumber,
+      this.nameOnAccount,
+      this.userId,
+      this.fundingType,
+      this.displayName,
+      this.accountId,
+      Map<String, Link> links})
+      : super(links: links);
 
   factory FundingSource.fromJson(Map<String, dynamic> json) => _$FundingSourceFromJson(json);
 
   Map<String, dynamic> toJson() => _$FundingSourceToJson(this);
+
+  bool operator ==(o) =>
+      o is FundingSource &&
+      accountNumber == o.accountNumber &&
+      routingNumber == o.routingNumber &&
+      nameOnAccount == o.nameOnAccount &&
+      userId == o.userId &&
+      fundingType == o.fundingType &&
+      displayName == o.displayName &&
+      accountId == o.accountId;
+
+  int get hashCode =>
+      accountNumber.hashCode ^
+      routingNumber.hashCode ^
+      nameOnAccount.hashCode ^
+      userId.hashCode ^
+      fundingType.hashCode ^
+      displayName.hashCode ^
+      accountId.hashCode;
+}
+
+enum FundingType {
+  @JsonValue('TOPUP')
+  topUp,
+  @JsonValue('ACH')
+  ach,
+}
+
+enum FundingState {
+  @JsonValue("ACTIVE")
+  ACTIVE,
+  @JsonValue("STOPPED")
+  STOPPED,
+  @JsonValue("ERROR")
+  ERROR
+}
+
+@JsonSerializable(nullable: true)
+class Funding extends BaseResource {
+  FundingState fundingState;
+  String fundingId;
+  String accountId;
+  String fundingSourceId;
+  String description;
+  double fundingAmount;
+
+  static String dateToJson(DateTime date) => (date?.toUtc()?.toIso8601String()) ?? '';
+  static DateTime dateFromJson(String str) => (str != null && !str.isEmpty) ? DateTime.parse(str) : null;
+  @JsonKey(fromJson: dateFromJson, toJson: dateToJson)
+  DateTime nextFundingTs;
+  bool isRecurring;
+  double lowAmountTopUp;
+  double topAmountTopUp;
+  String displayName;
+  FundingType fundingType;
+
+  Funding(
+      {this.fundingState,
+      this.fundingId,
+      this.accountId,
+      this.fundingSourceId,
+      this.description,
+      this.fundingAmount,
+      this.nextFundingTs,
+      this.isRecurring = false,
+      this.lowAmountTopUp,
+      this.topAmountTopUp,
+      this.displayName,
+      this.fundingType});
+
+  factory Funding.fromJson(Map<String, dynamic> json) => _$FundingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FundingToJson(this);
 }
 
 enum FundingType {
@@ -955,7 +1028,7 @@ class PaymentDeviceInformation {
   Map<String, dynamic> toJson() => _$PaymentDeviceInformationToJson(this);
 }
 
-enum ApplicationState {NEW, APPROVED, DECLINED}
+enum ApplicationState { NEW, APPROVED, DECLINED }
 
 @JsonSerializable(nullable: true)
 class Application extends BaseResource {
@@ -971,24 +1044,24 @@ class Application extends BaseResource {
   final List<ApplicationSteps> kycSteps;
   final int dateSubmitedTsEpoch;
   final int dateCreatedTsEpoch;
-  final int lastModifiedTsEpoch;  
+  final int lastModifiedTsEpoch;
 
-  Application({
-    this.applicationId,
-    this.applicationState,
-    this.accountId,
-    this.cardId,
-    this.userId,
-    this.programId,
-    this.dateSubmitedTs,
-    this.dateCreatedTs,
-    this.lastModifiedTs,
-    this.kycSteps,
-    this.dateSubmitedTsEpoch,
-    this.dateCreatedTsEpoch,
-    this.lastModifiedTsEpoch,
-    Map<String, Link> links
-  }):super(links: links);
+  Application(
+      {this.applicationId,
+      this.applicationState,
+      this.accountId,
+      this.cardId,
+      this.userId,
+      this.programId,
+      this.dateSubmitedTs,
+      this.dateCreatedTs,
+      this.lastModifiedTs,
+      this.kycSteps,
+      this.dateSubmitedTsEpoch,
+      this.dateCreatedTsEpoch,
+      this.lastModifiedTsEpoch,
+      Map<String, Link> links})
+      : super(links: links);
 
   factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
 
