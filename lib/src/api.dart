@@ -980,19 +980,19 @@ class API {
 
     print("Application ${response.body}");
 
-    if (response.statusCode ==  200) {
-        return Application.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      return Application.fromJson(jsonDecode(response.body));
     }
 
     return null;
   }
 
   Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
-    var body = json.encode([{'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}]);
+    var body = json.encode([
+      {'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}
+    ]);
 
-    var response = await http.patch("https://${uri.toString()}",
-                                    body: body,
-                                    headers: await _headers());
+    var response = await http.patch("https://${uri.toString()}", body: body, headers: await _headers());
 
     print("Patching application: ${response.statusCode}: ${response.body}");
   }
