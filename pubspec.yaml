@@ -23,7 +23,7 @@ dependencies:
     rx_ble: 
         git:
           url: https://github.com/fitpay/flutter-rx-ble
-          ref: fc16ed8b62bdb1e4bcf525b8c255ff6ba4749a6a
+          ref: 8417641f466bafba69d9fcf4de732e53404cd34e
     eventsource: ^0.2.1
     shared_preferences: ^0.5.3+1
 
