@@ -342,7 +342,8 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       api,
       card,
       oid,
-      cardStatus: HndxCardUtils.HNDX_CARD_STATUS_ACTIVATED,
+      cardStatus:
+          card.state == 'ACTIVE' ? HndxCardUtils.HNDX_CARD_STATUS_ACTIVATED : HndxCardUtils.HNDX_CARD_STATUS_CREATED,
     );
 
     yield* _sendCommand(c.command, data: c.data);
@@ -537,10 +538,6 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
         throw 'error entering bootloader';
       }
     }
-  }
-
-  Future<void> sendCard(CreditCard card) async {
-    _sendCard(card);
   }
 
   Stream<HndxResultState> getCategories() async* {
