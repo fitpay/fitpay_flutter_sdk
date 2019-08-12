@@ -967,7 +967,6 @@ class API {
     @required Funding newFunding,
     @required Uri uri,
     Funding oldFunding,
-    bool usePatch = true,
   }) async {
     if (oldFunding == null) {
       List<Funding> fundings = await getFundings(uri);
@@ -979,26 +978,27 @@ class API {
       }
     }
 
+    http.Response response;
+    final body = JsonPatch(
+          op: JsonPatchOp.replace,
+          path: "/0",
+          value: newFunding.toJson(),
+        ).toJson();
+
+    response = await http.patch(
+      uri,
+      body: body,
+      headers: await _headers()
+    );
+
     /// Eventually the API will support PATCHing fundings, but for the 
     /// time being the only way to mutate a funding is to DELETE it and
     /// then create a new one
-    http.Response response;
-    if (usePatch) {
-      final body = JsonPatch(
-            op: JsonPatchOp.replace,
-            path: "/0",
-            value: newFunding.toJson(),
-          ).toJson();
-
-      print(body);
-      response = await http.patch(
-        uri,
-        body: body,
-        headers: await _headers()
-      );
-    } else {
-      response = await http.delete(uri, headers: await _headers());
-    }
+    if (response.statusCode == 405) {
+      print("Patch not supported for Funding. Falling back to DELETE & POST");
+      http.delete(uri, headers: await _headers());
+      response = await createFunding(newFunding, uri: uri, append: true);
+    } 
 
     if (response.statusCode == 200) return Funding.fromJson(jsonDecode(response.body));
 
