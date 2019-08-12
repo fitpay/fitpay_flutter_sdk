@@ -7,11 +7,22 @@ part of 'models.dart';
 // **************************************************************************
 
 AccessToken _$AccessTokenFromJson(Map<String, dynamic> json) {
-  return AccessToken(token: json['access_token'] as String);
+  return AccessToken(
+      token: json['access_token'] as String,
+      tokenType: json['token_type'] as String,
+      scope: json['scope'] as String,
+      expiresIn: json['expires_in'] as int,
+      jti: json['jti'] as String);
 }
 
 Map<String, dynamic> _$AccessTokenToJson(AccessToken instance) =>
-    <String, dynamic>{'access_token': instance.token};
+    <String, dynamic>{
+      'access_token': instance.token,
+      'token_type': instance.tokenType,
+      'expires_in': instance.expiresIn,
+      'scope': instance.scope,
+      'jti': instance.jti
+    };
 
 SyncRequest _$SyncRequestFromJson(Map<String, dynamic> json) {
   return SyncRequest(

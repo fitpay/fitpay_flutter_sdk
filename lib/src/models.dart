@@ -42,10 +42,18 @@ class ApiConfiguration {
 class AccessToken {
   @JsonKey(name: 'access_token')
   final String token;
+  @JsonKey(name: 'token_type')
+  final String tokenType;
   final JWT claims;
+  @JsonKey(name: 'expires_in')
   final int expiresIn;
+  final String scope;
+  final String jti;
+  final List<String> roles;
 
-  AccessToken({this.token, this.expiresIn}) : claims = new JWT.parse(token);
+  AccessToken({this.token, this.tokenType, this.scope, this.expiresIn, this.jti})
+      : claims = new JWT.parse(token),
+        roles = scope?.split(' ');
 
   String getUserId() {
     return claims.getClaim('user_id');
