@@ -1,4 +1,5 @@
 import 'package:fitpay_flutter_sdk/fitpay_flutter_sdk.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -19,7 +20,7 @@ Future<AccessToken> exchangeFirebaseTokenForFitPayApiToken(
   );
 
   if (response.statusCode == 200) {
-    print("access token created: ${response.body}");
+    debugPrint('access token created: ${response.body}');
     return AccessToken.fromJson(jsonDecode(response.body));
   }
 
@@ -37,7 +38,16 @@ Future<API> initializeApiWithFirebaseToken(
   API api = new API();
   await api.initialize(
     config: config,
-    accessToken: await exchangeFirebaseTokenForFitPayApiToken(clientId, firebaseToken, config: config),
+    accessToken: await exchangeFirebaseTokenForFitPayApiToken(
+      clientId,
+      firebaseToken,
+      config: config,
+    ),
+    tokenRefresher: () => exchangeFirebaseTokenForFitPayApiToken(
+      clientId,
+      firebaseToken,
+      config: config,
+    ),
   );
 
   return api;

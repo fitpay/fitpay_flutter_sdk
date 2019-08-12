@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
+import 'package:rxdart/rxdart.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,9 +42,10 @@ class ApiConfiguration {
 class AccessToken {
   @JsonKey(name: 'access_token')
   final String token;
-  final claims;
+  final JWT claims;
+  final int expiresIn;
 
-  AccessToken({this.token}) : claims = new JWT.parse(token);
+  AccessToken({this.token, this.expiresIn}) : claims = new JWT.parse(token);
 
   String getUserId() {
     return claims.getClaim('user_id');
@@ -52,6 +54,29 @@ class AccessToken {
   String get clientId => claims.getClaim('client_id');
 
   factory AccessToken.fromJson(Map<String, dynamic> json) => _$AccessTokenFromJson(json);
+
+  /// Determines if the current accessToken is considered expired or not.  If the accessToken contains an expired date/time, that
+  /// value will be compared against the current system time.  If not, the expires_in value will be utilized against the issued time
+  /// to determine if a token is expired or now.  expires_in is not contained in the accessToken, it's returned with the token from the
+  /// oauth token endpoint.  Therefore, if this class is only built with an accessToken, expiresIn will not be set.
+  ///
+  /// If neither expiresIn or expiredTs are set the token will never be considered expired.
+  bool get expired {
+    // use the timestamp in the bearer token itself if it's there
+    if (claims.expiresAt != null) {
+      return DateTime.fromMillisecondsSinceEpoch(claims.expiresAt * 1000).isBefore(DateTime.now());
+    }
+
+    // if the claim isn't in the token, use expiresIn from the authentication request itself
+    if (expiresIn != null && claims.issuedAt != null) {
+      return DateTime.fromMillisecondsSinceEpoch(claims.issuedAt * 1000)
+          .add(Duration(seconds: expiresIn))
+          .isBefore(DateTime.now());
+    }
+
+    // if we get here, there is no way to determine if the token is expired or not
+    return false;
+  }
 }
 
 abstract class BaseResource {

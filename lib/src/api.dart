@@ -68,12 +68,18 @@ class API {
   AccessToken get accessToken => _accessToken;
   ApiConfiguration get config => _config;
   User get user => _user;
+  Function _tokenRefresher;
 
-  Future<void> initialize({AccessToken accessToken, ApiConfiguration config}) async {
+  Future<void> initialize({
+    AccessToken accessToken,
+    ApiConfiguration config,
+    Future<AccessToken> tokenRefresher(),
+  }) async {
     _config = config;
     _accessToken = accessToken;
     _encryptor = new DataEncryptor(config: config);
     _previousSyncRequests = [];
+    _tokenRefresher = tokenRefresher;
 
     if (_accessToken != null) {
       _user = await getUser();
@@ -1017,6 +1023,10 @@ class API {
     headers['X-FitPay-SDK'] = 'dart-1.0.0'; // TODO: Figure out how to read the version from pubspec.yaml
 
     if (_accessToken != null) {
+      if (_accessToken.expired && _tokenRefresher != null) {
+        // need to refresh the token
+        _accessToken = await _tokenRefresher();
+      }
       headers['Authorization'] = 'Bearer ${_accessToken.token}';
     }
 
