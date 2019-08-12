@@ -54,6 +54,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   var _hndxLock = new LocalSemaphore(1);
   var _hndxConnectingLock = new LocalSemaphore(1);
   var _hndxDisconnectingLock = new LocalSemaphore(1);
+  Timer _heartbeatTimer;
 
   @override
   Future<void> connect(String deviceId) async {
@@ -133,6 +134,12 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
                 print(
                     'dispatching connected after not receiving the 0x03 byte back from the device, older firmware maybe?');
                 dispatch(PaymentDeviceState.connected);
+                return null;
+              });
+
+              _heartbeatTimer ??= Timer.periodic(Duration(seconds: 20), (_) {
+                _sendCommand(Uint8List.fromList([HndxStatus.HEARTBEAT]))
+                    .listen((cmdState) => print('hndx heartbeat state change: ${cmdState.toString()}'));
               });
 
               break;
@@ -263,6 +270,8 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       await RxBle.stopScan();
       await RxBle.disconnect(deviceId: deviceId);
 
+      _heartbeatTimer?.cancel();
+      _heartbeatTimer = null;
       _connectStream?.cancel();
       _connectStream = null;
       await _commandResult?.close();
@@ -408,12 +417,23 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
       dispatch(PaymentDeviceState.sending);
 
-      // send status start and then enter a listener waiting for workflow state changes to ensure the state eng for communication
-      // matches hndx embedded workflow exactly
+      if (_currentCmd == HndxStatus.HEARTBEAT) {
+        print('TX: status heartbeat [${HndxStatus.HEARTBEAT.toRadixString(16).padLeft(2, "0")}]');
+        var startRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.HEARTBEAT]));
+        print('TX: status heartbeat response [${Utils.hexEncode(startRes)}]');
 
-      print('TX: status start [${HndxStatus.STATUS_START.toRadixString(16).padLeft(2, "0")}]');
-      var startRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.STATUS_START]));
-      print('TX: status start response [${Utils.hexEncode(startRes)}]');
+        yield HndxResultState(state: HndxCmdState.complete);
+        _resetHndxCommandState();
+        return;
+      } else {
+        // send status start and then enter a listener waiting for workflow state changes to ensure the state eng for communication
+        // matches hndx embedded workflow exactly
+
+        print('TX: status start [${HndxStatus.STATUS_START.toRadixString(16).padLeft(2, "0")}]');
+        var startRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.STATUS_START]));
+        print('TX: status start response [${Utils.hexEncode(startRes)}]');
+      }
+
       _workflowState = HndxWorkflowState.waiting_status_start_ack;
 
       this._workflow.stream.listen((newWorkflowState) async {
@@ -656,14 +676,18 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
           default:
             print(
                 'unexpected ack received [${Utils.hexEncode(data)}], currentState: ${_workflow.toString()}, resetting state');
-            _commandResult.add(HndxResultState(state: HndxCmdState.failed));
+            if (!_commandResult?.isClosed || !_commandResult?.isPaused) {
+              _commandResult.add(HndxResultState(state: HndxCmdState.failed));
+            }
 
             _resetHndxCommandState();
         }
       } else if (ack.nack) {
         print('nack, resetting state');
         // nack, stop reset the current state and fail
-        _commandResult?.add(HndxResultState(state: HndxCmdState.failed));
+        if (!_commandResult?.isClosed || !_commandResult?.isPaused) {
+          _commandResult?.add(HndxResultState(state: HndxCmdState.failed));
+        }
 
         _resetHndxCommandState();
       } else if (ack.ready) {

@@ -51,6 +51,7 @@ class HndxStatus {
   static const STATUS_START = 0x01;
   static const STATUS_END = 0x02;
   static const STATUS_ABORT = 0x03;
+  static const HEARTBEAT = 0x04;
   static const SUCCESS = 0x01;
 }
 
