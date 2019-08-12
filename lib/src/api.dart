@@ -965,9 +965,6 @@ class API {
       }
     }
 
-    /// Eventually the API will support PATCHing fundings, but for the 
-    /// time being the only way to mutate a funding is to DELETE it and
-    /// then create a new one
     http.Response response;
     final body = JsonPatch(
           op: JsonPatchOp.replace,
@@ -975,13 +972,15 @@ class API {
           value: newFunding.toJson(),
         ).toJson();
 
-    print(body);
     response = await http.patch(
       uri,
       body: body,
       headers: await _headers()
     );
 
+    /// Eventually the API will support PATCHing fundings, but for the 
+    /// time being the only way to mutate a funding is to DELETE it and
+    /// then create a new one
     if (response.statusCode == 405) {
       print("Patch not supported for Funding. Falling back to DELETE & POST");
       http.delete(uri, headers: await _headers());
