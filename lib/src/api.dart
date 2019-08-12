@@ -962,43 +962,26 @@ class API {
     return null;
   }
 
-  /// funding patching not implemented yet in API
   Future<Funding> overwriteFunding({
     @required Funding newFunding,
-    @required Uri uri,
+    Uri uri,
     Funding oldFunding,
   }) async {
+    assert(uri != null || oldFunding != null);
+
     if (oldFunding == null) {
       List<Funding> fundings = await getFundings(uri);
       if (fundings.length > 0) {
         oldFunding = fundings[0];
         print("Old funding not specified for overwrite. Overwriting: ${oldFunding.fundingId}");
       } else {
-        throw StateError("No existing funding to overwrite!");
+        throw StateError("No existing funding to overwrite");
       }
+    } else {
+      uri = oldFunding.links["self"].toUri();
     }
 
-    http.Response response;
-    final body = JsonPatch(
-          op: JsonPatchOp.replace,
-          path: "/0",
-          value: newFunding.toJson(),
-        ).toJson();
-
-    response = await http.patch(
-      uri,
-      body: body,
-      headers: await _headers()
-    );
-
-    /// Eventually the API will support PATCHing fundings, but for the 
-    /// time being the only way to mutate a funding is to DELETE it and
-    /// then create a new one
-    if (response.statusCode == 405) {
-      print("Patch not supported for Funding. Falling back to DELETE & POST");
-      http.delete(uri, headers: await _headers());
-      response = await createFunding(newFunding, uri: uri, append: true);
-    } 
+    final response = await http.put(uri, headers: await _headers(), body: newFunding.toJson());
 
     if (response.statusCode == 200) return Funding.fromJson(jsonDecode(response.body));
 
