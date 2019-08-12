@@ -46,7 +46,7 @@ class AccessToken {
   final String tokenType;
   final JWT claims;
   @JsonKey(name: 'expires_in')
-  final int expiresIn;
+  final String expiresIn;
   final String scope;
   final String jti;
   final List<String> roles;
@@ -78,7 +78,7 @@ class AccessToken {
     // if the claim isn't in the token, use expiresIn from the authentication request itself
     if (expiresIn != null && claims.issuedAt != null) {
       return DateTime.fromMillisecondsSinceEpoch(claims.issuedAt * 1000)
-          .add(Duration(seconds: expiresIn))
+          .add(Duration(seconds: int.parse(expiresIn)))
           .isBefore(DateTime.now());
     }
 
