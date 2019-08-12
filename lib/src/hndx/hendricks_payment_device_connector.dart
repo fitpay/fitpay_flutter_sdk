@@ -53,7 +53,6 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   APDUPackage _apduPackage;
   var _hndxLock = new LocalSemaphore(1);
   var _hndxConnectingLock = new LocalSemaphore(1);
-  var _hndxDisconnectingLock = new LocalSemaphore(1);
   Timer _heartbeatTimer;
 
   @override
@@ -263,29 +262,29 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   @override
   Future<void> disconnect() async {
-    await _hndxDisconnectingLock.acquire();
+    print('disconnect called, current workflow state: ${_workflowState.toString()}');
+    await Observable.periodic(Duration(milliseconds: 250))
+        .where((_) => _workflowState != HndxWorkflowState.idle)
+        .first
+        .timeout(Duration(seconds: 30), onTimeout: () {});
 
-    try {
-      dispatch(PaymentDeviceState.disconnecting);
-      await RxBle.stopScan();
-      await RxBle.disconnect(deviceId: deviceId);
+    dispatch(PaymentDeviceState.disconnecting);
+    await RxBle.stopScan();
+    await RxBle.disconnect(deviceId: deviceId);
 
-      _heartbeatTimer?.cancel();
-      _heartbeatTimer = null;
-      _connectStream?.cancel();
-      _connectStream = null;
-      await _commandResult?.close();
-      _commandResult = null;
-      await _dataObserver?.cancel();
-      _dataObserver = null;
-      await _statusObserver?.cancel();
-      _statusObserver = null;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _connectStream?.cancel();
+    _connectStream = null;
+    await _commandResult?.close();
+    _commandResult = null;
+    await _dataObserver?.cancel();
+    _dataObserver = null;
+    await _statusObserver?.cancel();
+    _statusObserver = null;
 
-      super.disconnect();
-      dispatch(PaymentDeviceState.disconnected);
-    } finally {
-      _hndxDisconnectingLock.release();
-    }
+    super.disconnect();
+    dispatch(PaymentDeviceState.disconnected);
   }
 
   void _createSubscriptions() {
