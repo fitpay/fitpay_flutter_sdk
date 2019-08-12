@@ -138,7 +138,8 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
               });
 
               _heartbeatTimer ??= Timer.periodic(Duration(seconds: 20), (_) {
-                _sendCommand(Uint8List.fromList([HndxStatus.HEARTBEAT]));
+                _sendCommand(Uint8List.fromList([HndxStatus.HEARTBEAT]))
+                    .listen((cmdState) => print('hndx heartbeat state change: ${cmdState.toString()}'));
               });
 
               break;
@@ -417,7 +418,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       dispatch(PaymentDeviceState.sending);
 
       if (_currentCmd == HndxStatus.HEARTBEAT) {
-        print('TX: status heartbeat [${HndxStatus.STATUS_START.toRadixString(16).padLeft(2, "0")}]');
+        print('TX: status heartbeat [${HndxStatus.HEARTBEAT.toRadixString(16).padLeft(2, "0")}]');
         var startRes = await _safeBleWrite(HndxBle.STATUS_CHAR, Uint8List.fromList([HndxStatus.HEARTBEAT]));
         print('TX: status heartbeat response [${Utils.hexEncode(startRes)}]');
 
@@ -675,14 +676,18 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
           default:
             print(
                 'unexpected ack received [${Utils.hexEncode(data)}], currentState: ${_workflow.toString()}, resetting state');
-            _commandResult.add(HndxResultState(state: HndxCmdState.failed));
+            if (!_commandResult?.isClosed || !_commandResult?.isPaused) {
+              _commandResult.add(HndxResultState(state: HndxCmdState.failed));
+            }
 
             _resetHndxCommandState();
         }
       } else if (ack.nack) {
         print('nack, resetting state');
         // nack, stop reset the current state and fail
-        _commandResult?.add(HndxResultState(state: HndxCmdState.failed));
+        if (!_commandResult?.isClosed || !_commandResult?.isPaused) {
+          _commandResult?.add(HndxResultState(state: HndxCmdState.failed));
+        }
 
         _resetHndxCommandState();
       } else if (ack.ready) {
