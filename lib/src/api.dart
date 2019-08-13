@@ -1029,9 +1029,9 @@ class API {
     headers['Content-Type'] = 'application/json';
     headers['X-FitPay-SDK'] = 'dart-1.0.0'; // TODO: Figure out how to read the version from pubspec.yaml
 
-    AccessToken token = await accessToken;
-    if (token != null) {
-      headers['Authorization'] = 'Bearer $token';
+    AccessToken at = await accessToken;
+    if (at != null) {
+      headers['Authorization'] = 'Bearer ${at.token}';
     }
 
     if (includeFpKeyId && _encryptor != null) {
