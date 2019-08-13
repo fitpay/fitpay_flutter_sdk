@@ -65,7 +65,14 @@ class API {
   static const INVALID_CARD_STATES = ['ERROR', 'DECLINED'];
 
   DataEncryptor get encryptor => _encryptor;
-  AccessToken get accessToken => _accessToken;
+  Future<AccessToken> get accessToken async {
+    if (_accessToken != null && _accessToken.expired && _tokenRefresher != null) {
+      _accessToken = await _tokenRefresher();
+    }
+
+    return _accessToken;
+  }
+
   ApiConfiguration get config => _config;
   User get user => _user;
   Function _tokenRefresher;
@@ -1022,12 +1029,9 @@ class API {
     headers['Content-Type'] = 'application/json';
     headers['X-FitPay-SDK'] = 'dart-1.0.0'; // TODO: Figure out how to read the version from pubspec.yaml
 
-    if (_accessToken != null) {
-      if (_accessToken.expired && _tokenRefresher != null) {
-        // need to refresh the token
-        _accessToken = await _tokenRefresher();
-      }
-      headers['Authorization'] = 'Bearer ${_accessToken.token}';
+    AccessToken token = await accessToken;
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
     }
 
     if (includeFpKeyId && _encryptor != null) {
