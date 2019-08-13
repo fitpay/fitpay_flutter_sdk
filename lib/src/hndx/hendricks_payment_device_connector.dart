@@ -641,6 +641,11 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   StreamSubscription<Uint8List> _generateStatusSubscription(String deviceId) {
     return _safeBleObserve(HndxBle.STATUS_CHAR).listen((data) {
+      if (data == null || data.length == 0) {
+        print('empty status received from hndx device, ignoring');
+        return;
+      }
+
       print('status received [${Utils.hexEncode(data)}]');
 
       HndxStatusAck ack = HndxStatusAck.fromData(data);
