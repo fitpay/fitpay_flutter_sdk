@@ -924,7 +924,7 @@ class API {
   }
 
   Future<GPRAccount> activateAccount(Uri uri) async {
-    var response = await _httpClient.post("https://${uri.toString()}", headers: await _headers());
+    var response = await _httpClient.post(uri.toString(), headers: await _headers());
 
     print('Account activation response ${response.statusCode}: ${response.body}');
 
@@ -989,7 +989,7 @@ class API {
   }
 
   Future<Application> getApplication(Uri uri) async {
-    var response = await _httpClient.get('https://${uri.toString()}', headers: await _headers());
+    var response = await _httpClient.get(uri.toString(), headers: await _headers());
 
     print("Application ${response.body}");
 
@@ -1005,13 +1005,13 @@ class API {
       {'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}
     ]);
 
-    var response = await http.patch("https://${uri.toString()}", body: body, headers: await _headers());
+    var response = await http.patch(uri.toString(), body: body, headers: await _headers());
 
     print("Patching application: ${response.statusCode}: ${response.body}");
   }
 
   Future<Application> submitApplication(Uri uri) async {
-    var response = await _httpClient.post("https://${uri.toString()}", headers: await _headers());
+    var response = await _httpClient.post(uri.toString(), headers: await _headers());
 
     print('Application submission response ${response.statusCode}: ${response.body}');
 
