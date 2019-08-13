@@ -340,13 +340,15 @@ class HndxCardUtils {
       pan = pan.substring(pan.length - 4, pan.length);
     }
 
-    if (expYr <= 99) {
-      expYr += 2000;
+    var expYrStr = expYr?.toString() ?? '';
+    if (expYrStr.length > 2) {
+      expYrStr = expYrStr.substring(expYrStr.length - 2, expYrStr.length);
     }
 
     var expMoStr = expMo.toString().padLeft(2, '0');
+    expYrStr = expYrStr.padLeft(2, '0');
 
-    var exp = '$expMoStr/$expYr';
+    var exp = '$expMoStr/$expYrStr';
 
     data.add(encodeString(pan, HNDX_CARD_LASTFOUR_LEN));
     data.add(encodeString(exp, HNDX_CARD_EXP_LEN));
