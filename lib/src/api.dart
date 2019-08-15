@@ -953,7 +953,10 @@ class API {
   /// so that the caller can decide whether to overwrite it.
   Future<Funding> createFunding({@required Funding funding, @required Uri uri, bool append=false}) async {
     List<Funding> existingFundings = await getFundings(uri);
-    if (existingFundings.length > 0 && !append) throw existingFundings[0];
+    if (existingFundings.length > 0 && !append) {
+      print("Funding(s) already exist: $existingFundings");
+      throw existingFundings[0];
+    }
     var response = await http.post(uri,
       body: jsonEncode(funding.toJson()),
       headers: await _headers());
@@ -969,21 +972,16 @@ class API {
   }) async {
     assert(uri != null || oldFunding != null);
 
-    if (oldFunding == null) {
-      List<Funding> fundings = await getFundings(uri);
-      if (fundings.length > 0) {
-        oldFunding = fundings[0];
-        print("Old funding not specified for overwrite. Overwriting: ${oldFunding.fundingId}");
-      } else {
-        throw StateError("No existing funding to overwrite");
-      }
+    if (oldFunding != null) uri = oldFunding.links["self"].toUri();
+
+    final response = await http.put(uri, headers: await _headers(), body: jsonEncode(newFunding.toJson()));
+
+    if (response.statusCode == 200) {
+      return Funding.fromJson(jsonDecode(response.body));
     } else {
-      uri = oldFunding.links["self"].toUri();
+      print("Error PUTing new funding: ${response.statusCode}");
+      throw response.statusCode;
     }
-
-    final response = await http.put(uri, headers: await _headers(), body: newFunding.toJson());
-
-    if (response.statusCode == 200) return Funding.fromJson(jsonDecode(response.body));
 
     return null;
   }

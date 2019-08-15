@@ -838,10 +838,14 @@ Funding _$FundingFromJson(Map<String, dynamic> json) {
     displayName: json['displayName'] as String,
     fundingType:
         _$enumDecodeNullable(_$FundingTypeEnumMap, json['fundingType']),
+    links: (json['_links'] as Map<String, dynamic>).map(
+      (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
+    ),
   );
 }
 
 Map<String, dynamic> _$FundingToJson(Funding instance) => <String, dynamic>{
+      '_links': instance.links,
       'fundingState': _$FundingStateEnumMap[instance.fundingState],
       'fundingId': instance.fundingId,
       'accountId': instance.accountId,

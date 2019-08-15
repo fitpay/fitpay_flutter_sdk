@@ -946,7 +946,9 @@ class Funding extends BaseResource {
     this.lowAmountTopUp,
     this.topAmountTopUp,
     this.displayName,
-    this.fundingType});
+    this.fundingType,
+    Map<String, Link> links})
+    : super(links: links);
 
   factory Funding.fromJson(Map<String, dynamic> json) => _$FundingFromJson(json);
 
