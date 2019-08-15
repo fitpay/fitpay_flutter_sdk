@@ -264,7 +264,7 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   Future<void> disconnect() async {
     print('disconnect called, current workflow state: ${_workflowState.toString()}');
     await Observable.periodic(Duration(milliseconds: 250))
-        .where((_) => _workflowState != HndxWorkflowState.idle)
+        .where((_) => this._workflowState == HndxWorkflowState.idle)
         .first
         .timeout(Duration(seconds: 30), onTimeout: () {});
 

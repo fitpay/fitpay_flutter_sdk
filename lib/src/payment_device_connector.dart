@@ -72,8 +72,6 @@ abstract class PaymentDeviceConnector {
   }
 
   Future<bool> get isConnected async {
-    print('(${this.hashCode}) called: ${_state.toString()}');
-
     return _state != null &&
         _state != PaymentDeviceState.disconnected &&
         _state != PaymentDeviceState.disconnecting &&
