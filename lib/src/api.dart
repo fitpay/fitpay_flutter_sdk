@@ -947,6 +947,54 @@ class API {
     return null;
   }
 
+  /// Returns the funding that was created.
+  /// 
+  /// If there was an exisiting funding, it throws that existing funding object
+  /// so that the caller can decide whether to overwrite it.
+  Future<Funding> createFunding({@required Funding funding, @required Uri uri, bool append=false}) async {
+    List<Funding> existingFundings = await getFundings(uri);
+    if (existingFundings.length > 0 && !append) {
+      print("Funding(s) already exist: $existingFundings");
+      throw existingFundings[0];
+    }
+    var response = await http.post(uri,
+      body: jsonEncode(funding.toJson()),
+      headers: await _headers());
+    if (response.statusCode == 202) return Funding.fromJson(jsonDecode(response.body));
+
+    return null;
+  }
+
+  Future<Funding> overwriteFunding({
+    @required Funding newFunding,
+    Uri uri,
+    Funding oldFunding,
+  }) async {
+    assert(uri != null || oldFunding != null);
+
+    if (oldFunding != null) uri = oldFunding.links["self"].toUri();
+
+    final response = await http.put(uri, headers: await _headers(), body: jsonEncode(newFunding.toJson()));
+
+    if (response.statusCode == 200) {
+      return Funding.fromJson(jsonDecode(response.body));
+    } else {
+      print("Error PUTing new funding: ${response.statusCode}");
+      throw response.statusCode;
+    }
+
+    return null;
+  }
+
+  Future<List<Funding>> getFundings(Uri uri) async {
+    var response = await http.get(uri, headers: await _headers());
+    if (response.statusCode == 200)
+      return jsonDecode(response.body)['results']
+        .map<Funding>((value) => Funding.fromJson(value))
+        .toList() as List<Funding>;
+    return [];
+  }
+
   Future<Page<FundingSource>> getFundingSources(Uri uri, {bool useMockFundingSources = false}) async {
     if (useMockFundingSources) {
       return mockFundingSources;
@@ -1002,7 +1050,9 @@ class API {
 
   Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
     var body = json.encode([
-      {'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}
+      {'op': 'replace',
+      'path': '/kycSteps/$stepNum/value',
+      'value': ((value is DateTime) ? value.toIso8601String() : value) }
     ]);
 
     var response = await http.patch(uri.toString(), body: body, headers: await _headers());

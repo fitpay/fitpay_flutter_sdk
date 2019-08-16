@@ -924,7 +924,10 @@ class Funding extends BaseResource {
 
   static String dateToJson(DateTime date) => (date?.toUtc()?.toIso8601String()) ?? '';
   static DateTime dateFromJson(String str) => (str != null && !str.isEmpty) ? DateTime.parse(str) : null;
-  @JsonKey(fromJson: dateFromJson, toJson: dateToJson)
+  @JsonKey(
+    fromJson: dateFromJson,
+    toJson: dateToJson
+  )
   DateTime nextFundingTs;
   bool isRecurring;
   double lowAmountTopUp;
@@ -932,23 +935,25 @@ class Funding extends BaseResource {
   String displayName;
   FundingType fundingType;
 
-  Funding(
-      {this.fundingState,
-      this.fundingId,
-      this.accountId,
-      this.fundingSourceId,
-      this.description,
-      this.fundingAmount,
-      this.nextFundingTs,
-      this.isRecurring = false,
-      this.lowAmountTopUp,
-      this.topAmountTopUp,
-      this.displayName,
-      this.fundingType});
+  Funding({this.fundingState,
+    this.fundingId,
+    this.accountId,
+    this.fundingSourceId,
+    this.description,
+    this.fundingAmount,
+    this.nextFundingTs,
+    this.isRecurring = false,
+    this.lowAmountTopUp,
+    this.topAmountTopUp,
+    this.displayName,
+    this.fundingType,
+    Map<String, Link> links})
+    : super(links: links);
 
   factory Funding.fromJson(Map<String, dynamic> json) => _$FundingFromJson(json);
 
   Map<String, dynamic> toJson() => _$FundingToJson(this);
+
 }
 
 enum JsonPatchOp {
