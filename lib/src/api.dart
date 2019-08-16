@@ -1050,7 +1050,9 @@ class API {
 
   Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
     var body = json.encode([
-      {'op': 'replace', 'path': '/kycSteps/$stepNum/value', 'value': value}
+      {'op': 'replace',
+      'path': '/kycSteps/$stepNum/value',
+      'value': ((value is DateTime) ? value.toIso8601String() : value) }
     ]);
 
     var response = await http.patch(uri.toString(), body: body, headers: await _headers());
