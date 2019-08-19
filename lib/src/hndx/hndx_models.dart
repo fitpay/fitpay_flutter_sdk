@@ -599,7 +599,7 @@ class HndxApduUtils {
         responseData: Utils.hexEncode(responseData),
       ));
 
-      if (idx >= data.length) {
+      if (idx > data.length) {
         print('Number of APDU command returned from hndx device was not long enough for the package sent!');
         break;
       } else if (responseCode[0] != 0x90 && responseCode[1] != 0x00 && !continueOnFailure) {

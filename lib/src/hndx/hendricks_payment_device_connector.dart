@@ -54,6 +54,8 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
   var _hndxLock = new LocalSemaphore(1);
   var _hndxConnectingLock = new LocalSemaphore(1);
   Timer _heartbeatTimer;
+  int _bleErrorCount = 0;
+  final int _bleErrorThreshold = 2;
 
   @override
   Future<void> connect(String deviceId) async {
@@ -92,17 +94,16 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       }
 
       try {
+        dispatch(PaymentDeviceState.connecting);
+
         _connectStream?.cancel();
         _connectStream = RxBle.connect(deviceId, waitForDevice: true, autoConnect: false).listen((state) async {
           print('hndx connection state change ${state.toString()}');
 
           switch (state) {
-            case BleConnectionState.connecting:
-              dispatch(PaymentDeviceState.connecting);
-              break;
-
             case BleConnectionState.connected:
-              print('forcing 2s delay after connected event, why?!???');
+              print('forcing 1s delay after connected event, why?!???');
+              _bleErrorCount = 0;
               await Future.delayed(Duration(seconds: 1));
 
               if (Platform.isAndroid) {
@@ -154,12 +155,14 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
               break;
 
             default:
-              print('unhandled ble state change: ${state.toString()}');
+              print('skipped ble state change from hndx connect listener: ${state.toString()}');
           }
         });
       } on BleDisconnectedException {
         print('unexpected ble disconnect while trying to connect, calling connect again');
         Future.delayed(Duration(milliseconds: 100), () => connect(deviceId));
+      } catch (err) {
+        print('generic ble exception: $err');
       }
     } finally {
       _hndxConnectingLock.release();
@@ -262,22 +265,23 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   @override
   Future<void> disconnect() async {
-    print('disconnect called, current workflow state: ${_workflowState.toString()}');
-    await Observable.periodic(Duration(milliseconds: 250))
-        .where((_) => this._workflowState == HndxWorkflowState.idle)
-        .first
-        .timeout(Duration(seconds: 30), onTimeout: () {});
+    print('disconnect called on $deviceId, current workflow state: ${_workflowState.toString()}');
+    if (_workflowState != null && _workflowState != HndxWorkflowState.idle) {
+      await Observable.periodic(Duration(milliseconds: 250))
+          .where((_) => this._workflowState == HndxWorkflowState.idle)
+          .first
+          .timeout(Duration(seconds: 30), onTimeout: () {});
+    }
 
     dispatch(PaymentDeviceState.disconnecting);
     await RxBle.stopScan();
     await RxBle.disconnect(deviceId: deviceId);
 
+    _resetHndxCommandState();
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
     _connectStream?.cancel();
     _connectStream = null;
-    await _commandResult?.close();
-    _commandResult = null;
     await _dataObserver?.cancel();
     _dataObserver = null;
     await _statusObserver?.cancel();
@@ -377,35 +381,40 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
       print('unexpected ble disconnect');
       await disconnect();
     } catch (err) {
-      print('unexpected ble exception: ${err.toString()}');
+      _bleErrorCount++;
+      print('unexpected ble exception, ble error count $_bleErrorCount: ${err.toString()}');
       _commandResult.add(HndxResultState(state: HndxCmdState.failed));
       _resetHndxCommandState();
-      throw err;
+
+      if (_bleErrorCount >= _bleErrorThreshold) {
+        await disconnect();
+      }
     }
 
     return Uint8List(0);
   }
 
   Stream<HndxResultState> _sendCommand(Uint8List command, {Uint8List data, APDUPackage apduPackage}) async* {
-    if (!(await isConnected)) {
-      print('device not yet connected, waiting to send command ${Utils.hexEncode(command)}: ${state.toString()}');
-      bool connected = await Observable.periodic(Duration(seconds: 5))
-          .asyncMap((_) => isConnected)
-          .where((connected) => connected)
-          .timeout(Duration(seconds: 5), onTimeout: (_) => false)
-          .first;
-
-      if (!connected) {
-        print('timeout waiting on connected device for command ${Utils.hexEncode(command)}');
-        yield HndxResultState(state: HndxCmdState.failed);
-        return;
-      }
-    }
-
     try {
       print('cmd [${Utils.hexEncode(command)}] waiting for lock');
       await _hndxLock.acquire();
       print('cmd [${Utils.hexEncode(command)}] aquired lock');
+
+      if (!(await isConnected)) {
+        print('device not yet connected, waiting to send command ${Utils.hexEncode(command)}: ${state.toString()}');
+        bool connected = await Observable.periodic(Duration(milliseconds: 250))
+            .asyncMap((_) => isConnected)
+            .where((connected) => connected)
+            .timeout(Duration(seconds: 5), onTimeout: (_) => false)
+            .first;
+
+        if (!connected) {
+          print('timeout waiting on connected device for command ${Utils.hexEncode(command)}');
+          yield HndxResultState(state: HndxCmdState.failed);
+          _resetHndxCommandState();
+          return;
+        }
+      }
 
       this._cmdStartTime = DateTime.now().millisecondsSinceEpoch;
       this._currentCmd = command[0];
@@ -634,6 +643,13 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
     } on BleDisconnectedException {
       print('unexpected ble disconnect');
       disconnect();
+    } catch (err) {
+      _bleErrorCount++;
+      print('generic ble observation error, ble error count $_bleErrorCount: $err');
+
+      if (_bleErrorCount >= _bleErrorThreshold) {
+        disconnect();
+      }
     }
 
     return Stream.empty();
@@ -784,9 +800,20 @@ class HendricksPaymentDeviceConnector extends PaymentDeviceConnector {
 
   void _resetHndxCommandState() {
     print('resetting hndx cmd state');
-    dispatch(PaymentDeviceState.idle);
+
+    switch (state) {
+      case PaymentDeviceState.disconnecting:
+      case PaymentDeviceState.disconnected:
+        // ignore, you can't broadcast this idle state as we're disconnecting
+        // TODO: refactor this shit into a state engine to control transitions like this
+        break;
+
+      default:
+        dispatch(PaymentDeviceState.idle);
+    }
+
     _workflow?.close();
-    _commandResult.close().then((_) {
+    _commandResult?.close()?.then((_) {
       _workflow = null;
       _workflowState = HndxWorkflowState.idle;
       _statusEndAck = null;
