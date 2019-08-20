@@ -1055,9 +1055,10 @@ class ApplicationSteps extends BaseResource {
   final String name;
   final String type;
   final String value;
+  final String regex;
   final int page;
 
-  ApplicationSteps({this.stepId, this.page, this.name, this.type, this.value});
+  ApplicationSteps({this.stepId, this.page, this.name, this.type, this.value, this.regex});
 
   factory ApplicationSteps.fromJson(Map<String, dynamic> json) => _$ApplicationStepsFromJson(json);
 
