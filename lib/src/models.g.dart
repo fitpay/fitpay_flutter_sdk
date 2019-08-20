@@ -980,6 +980,7 @@ ApplicationSteps _$ApplicationStepsFromJson(Map<String, dynamic> json) {
     name: json['name'] as String,
     type: json['type'] as String,
     value: json['value'] as String,
+    regex: json['regex'] as String,
   );
 }
 
@@ -989,5 +990,6 @@ Map<String, dynamic> _$ApplicationStepsToJson(ApplicationSteps instance) =>
       'name': instance.name,
       'type': instance.type,
       'value': instance.value,
+      'regex': instance.regex,
       'page': instance.page,
     };
