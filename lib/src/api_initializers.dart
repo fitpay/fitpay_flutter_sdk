@@ -53,6 +53,34 @@ Future<API> initializeApiWithFirebaseToken(
   return api;
 }
 
+Future<API> initializeApiWithFirebaseTokenGetter(
+  String clientId,
+  Future<String> Function() fbTokenGetter, {
+  ApiConfiguration config = const ApiConfiguration(),
+}) async {
+  assert(clientId != null);
+  assert(fbTokenGetter != null);
+
+  API api = new API();
+  await api.initialize(
+    config: config,
+    accessToken: await exchangeFirebaseTokenForFitPayApiToken(
+      clientId,
+      await fbTokenGetter(),
+      config: config,
+    ),
+    tokenRefresher: () async {
+        return exchangeFirebaseTokenForFitPayApiToken(
+        clientId,
+        await fbTokenGetter(),
+        config: config,
+      );
+    },
+  );
+
+  return api;
+}
+
 Future<API> initializeApiUnauthenticated({ApiConfiguration config = const ApiConfiguration()}) async {
   API api = new API();
   await api.initialize(config: config);
