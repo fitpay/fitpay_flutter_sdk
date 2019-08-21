@@ -32,25 +32,7 @@ Future<API> initializeApiWithFirebaseToken(
   String firebaseToken, {
   ApiConfiguration config = const ApiConfiguration(),
 }) async {
-  assert(clientId != null);
-  assert(firebaseToken != null);
-
-  API api = new API();
-  await api.initialize(
-    config: config,
-    accessToken: await exchangeFirebaseTokenForFitPayApiToken(
-      clientId,
-      firebaseToken,
-      config: config,
-    ),
-    tokenRefresher: () => exchangeFirebaseTokenForFitPayApiToken(
-      clientId,
-      firebaseToken,
-      config: config,
-    ),
-  );
-
-  return api;
+  return initializeApiWithFirebaseTokenGetter(clientId, () => Future.value(firebaseToken), config: config);
 }
 
 Future<API> initializeApiWithFirebaseTokenGetter(
