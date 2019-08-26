@@ -51,7 +51,8 @@ class AccessToken {
   final String jti;
   final List<String> roles;
 
-  AccessToken({this.token, this.tokenType, this.scope, this.expiresIn, this.jti})
+  AccessToken(
+      {this.token, this.tokenType, this.scope, this.expiresIn, this.jti})
       : claims = new JWT.parse(token),
         roles = scope?.split(' ');
 
@@ -61,7 +62,8 @@ class AccessToken {
 
   String get clientId => claims.getClaim('client_id');
 
-  factory AccessToken.fromJson(Map<String, dynamic> json) => _$AccessTokenFromJson(json);
+  factory AccessToken.fromJson(Map<String, dynamic> json) =>
+      _$AccessTokenFromJson(json);
 
   /// Determines if the current accessToken is considered expired or not.  If the accessToken contains an expired date/time, that
   /// value will be compared against the current system time.  If not, the expires_in value will be utilized against the issued time
@@ -72,7 +74,8 @@ class AccessToken {
   bool get expired {
     // use the timestamp in the bearer token itself if it's there
     if (claims.expiresAt != null) {
-      return DateTime.fromMillisecondsSinceEpoch(claims.expiresAt * 1000).isBefore(DateTime.now());
+      return DateTime.fromMillisecondsSinceEpoch(claims.expiresAt * 1000)
+          .isBefore(DateTime.now());
     }
 
     // if the claim isn't in the token, use expiresIn from the authentication request itself
@@ -111,7 +114,8 @@ class SyncRequest extends BaseResource {
     Map<String, Link> links,
   }) : super(links: links);
 
-  factory SyncRequest.fromJson(Map<String, dynamic> json) => _$SyncRequestFromJson(json);
+  factory SyncRequest.fromJson(Map<String, dynamic> json) =>
+      _$SyncRequestFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -119,7 +123,8 @@ class Link {
   final String href;
   final bool templated;
 
-  Link({this.href, templated}) : this.templated = templated != null ? templated : false;
+  Link({this.href, templated})
+      : this.templated = templated != null ? templated : false;
 
   Uri toUri() => Uri.parse(href);
 
@@ -135,9 +140,11 @@ class EncryptionKey extends BaseResource {
   String clientPrivateKey;
   String clientPublicKey;
 
-  EncryptionKey({Map<String, Link> links, this.keyId, this.serverPublicKey}) : super(links: links);
+  EncryptionKey({Map<String, Link> links, this.keyId, this.serverPublicKey})
+      : super(links: links);
 
-  factory EncryptionKey.fromJson(Map<String, dynamic> json) => _$EncryptionKeyFromJson(json);
+  factory EncryptionKey.fromJson(Map<String, dynamic> json) =>
+      _$EncryptionKeyFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -158,7 +165,13 @@ class Page<T> extends BaseResource {
   @_Converter()
   final List<T> results;
 
-  Page({this.limit, this.offset, this.totalResults, this.results, Map<String, Link> links}) : super(links: links);
+  Page(
+      {this.limit,
+      this.offset,
+      this.totalResults,
+      this.results,
+      Map<String, Link> links})
+      : super(links: links);
 
   factory Page.fromJson(Map<String, dynamic> json) => _$PageFromJson<T>(json);
 
@@ -202,7 +215,8 @@ class APDUPackage extends BaseResource {
 
   APDUPackage({this.packageId, this.commandApdus, this.apduCommands});
 
-  factory APDUPackage.fromJson(Map<String, dynamic> json) => _$APDUPackageFromJson(json);
+  factory APDUPackage.fromJson(Map<String, dynamic> json) =>
+      _$APDUPackageFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -224,9 +238,11 @@ class APDUCommand extends BaseResource {
     this.injected,
     continueOnFailure,
   })  : this.groupId = groupId != null ? groupId : 0,
-        this.continueOnFailure = continueOnFailure != null ? continueOnFailure : false;
+        this.continueOnFailure =
+            continueOnFailure != null ? continueOnFailure : false;
 
-  factory APDUCommand.fromJson(Map<String, dynamic> json) => _$APDUCommandFromJson(json);
+  factory APDUCommand.fromJson(Map<String, dynamic> json) =>
+      _$APDUCommandFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -237,7 +253,8 @@ class ApduCommandResult {
 
   ApduCommandResult({this.commandId, this.responseCode, this.responseData});
 
-  factory ApduCommandResult.fromJson(Map<String, dynamic> json) => _$ApduCommandResultFromJson(json);
+  factory ApduCommandResult.fromJson(Map<String, dynamic> json) =>
+      _$ApduCommandResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApduCommandResultToJson(this);
 }
@@ -274,7 +291,14 @@ class ApduExecutionResult {
   Map<String, dynamic> toJson() => _$ApduExecutionResultToJson(this);
 }
 
-enum APDUExecutionState { starting, sending, executing, receiving, success, error }
+enum APDUExecutionState {
+  starting,
+  sending,
+  executing,
+  receiving,
+  success,
+  error
+}
 
 class APDUExecutionStatus {
   final APDUExecutionState state;
@@ -297,7 +321,8 @@ class VerificationMethods extends BaseResource {
 
   VerificationMethods({this.creditCardId, this.verificationMethods});
 
-  factory VerificationMethods.fromJson(Map<String, dynamic> json) => _$VerificationMethodsFromJson(json);
+  factory VerificationMethods.fromJson(Map<String, dynamic> json) =>
+      _$VerificationMethodsFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -343,7 +368,8 @@ class CreditCard extends BaseResource {
   }
 
   static void removeAcceptTermsState(String creditCardId) {
-    SharedPreferences.getInstance().then((prefs) => prefs.remove('acceptTermsState-$creditCardId'));
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.remove('acceptTermsState-$creditCardId'));
   }
 
   factory CreditCard.fromJson(Map<String, dynamic> json) {
@@ -351,13 +377,15 @@ class CreditCard extends BaseResource {
 
     // if this is the first time seeing a non-templated acceptTerms links, we need to save state because
     // the FitPay platform will never send them again
-    if (card.links.containsKey('acceptTerms') && !card.links['acceptTerms'].templated) {
+    if (card.links.containsKey('acceptTerms') &&
+        !card.links['acceptTerms'].templated) {
       SharedPreferences.getInstance().then((prefs) {
         if (!prefs.containsKey('acceptTermsState-${card.creditCardId}')) {
           Uri acceptTermsUri = card.links['acceptTerms'].toUri();
           print('saving acceptTerms link state: ${acceptTermsUri.toString()}');
 
-          prefs.setString('acceptTermsState-${card.creditCardId}', jsonEncode(acceptTermsUri.queryParametersAll));
+          prefs.setString('acceptTermsState-${card.creditCardId}',
+              jsonEncode(acceptTermsUri.queryParametersAll));
         }
       });
     }
@@ -373,7 +401,8 @@ class AppToAppContext {
 
   AppToAppContext({this.applicationId, this.action, this.payload});
 
-  factory AppToAppContext.fromJson(Map<String, dynamic> json) => _$AppToAppContextFromJson(json);
+  factory AppToAppContext.fromJson(Map<String, dynamic> json) =>
+      _$AppToAppContextFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -393,7 +422,8 @@ class VerificationMethod extends BaseResource {
     Map<String, Link> links,
   }) : super(links: links);
 
-  factory VerificationMethod.fromJson(Map<String, dynamic> json) => _$VerificationMethodFromJson(json);
+  factory VerificationMethod.fromJson(Map<String, dynamic> json) =>
+      _$VerificationMethodFromJson(json);
 }
 
 enum VerificationMethodReason {
@@ -463,7 +493,8 @@ class CardMetaData {
       this.termsAndConditionsUrl,
       this.privacyPolicyUrl});
 
-  factory CardMetaData.fromJson(Map<String, dynamic> json) => _$CardMetaDataFromJson(json);
+  factory CardMetaData.fromJson(Map<String, dynamic> json) =>
+      _$CardMetaDataFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -473,14 +504,20 @@ class Asset extends BaseResource {
   factory Asset.fromJson(Map<String, dynamic> json) => _$AssetFromJson(json);
 }
 
-enum CreditCardCreationState { creating, pending_eligibility_check, created, error }
+enum CreditCardCreationState {
+  creating,
+  pending_eligibility_check,
+  created,
+  error
+}
 
 class CreditCardCreationStatus {
   final CreditCardCreationState state;
   final CreditCard creditCard;
   final ApiError error;
   final int statusCode;
-  CreditCardCreationStatus({this.state, this.creditCard, this.statusCode, this.error});
+  CreditCardCreationStatus(
+      {this.state, this.creditCard, this.statusCode, this.error});
 }
 
 enum CreditCardAcceptTermsState {
@@ -500,7 +537,8 @@ class CreditCardAcceptTermsStatus {
   final CreditCard creditCard;
   final ApiError error;
   final int statusCode;
-  CreditCardAcceptTermsStatus({this.state, this.creditCard, this.statusCode, this.error});
+  CreditCardAcceptTermsStatus(
+      {this.state, this.creditCard, this.statusCode, this.error});
 }
 
 enum SecureElementManufacturer {
@@ -520,7 +558,8 @@ class SecureElement {
 
   SecureElement({this.secureElementId, this.casdCert, this.manufacturer});
 
-  factory SecureElement.fromJson(Map<String, dynamic> json) => _$SecureElementFromJson(json);
+  factory SecureElement.fromJson(Map<String, dynamic> json) =>
+      _$SecureElementFromJson(json);
 
   Map<String, dynamic> toJson() => _$SecureElementToJson(this);
 }
@@ -602,7 +641,8 @@ class DecryptedTransaction {
       this.transactionType,
       this.authorizationStatus});
 
-  factory DecryptedTransaction.fromJson(Map<String, dynamic> json) => _$DecryptedTransactionFromJson(json);
+  factory DecryptedTransaction.fromJson(Map<String, dynamic> json) =>
+      _$DecryptedTransactionFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -612,9 +652,11 @@ class Transaction extends BaseResource {
   final int transactionTimeEpoch;
   DecryptedTransaction decryptedTransaction;
 
-  Transaction({this.transactionId, this.encryptedData, this.transactionTimeEpoch});
+  Transaction(
+      {this.transactionId, this.encryptedData, this.transactionTimeEpoch});
 
-  factory Transaction.fromJson(Map<String, dynamic> json) => _$TransactionFromJson(json);
+  factory Transaction.fromJson(Map<String, dynamic> json) =>
+      _$TransactionFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -651,10 +693,13 @@ class ApiError {
 
   ApiError({this.message, this.description});
 
-  factory ApiError.fromJson(Map<String, dynamic> json) => _$ApiErrorFromJson(json);
+  factory ApiError.fromJson(Map<String, dynamic> json) =>
+      _$ApiErrorFromJson(json);
 }
 
 String _dateTimeToJson(DateTime d) => d.toIso8601String();
+
+DateTime _dateTimeFromJson(String str) => (str != null && !str.isEmpty) ? DateTime.parse(str) : null;
 
 @JsonSerializable(nullable: true)
 class IdvVerificationData {
@@ -677,7 +722,8 @@ class IdvVerificationData {
     this.oemAccountCreatedDate,
   });
 
-  factory IdvVerificationData.fromJson(Map<String, dynamic> json) => _$IdvVerificationDataFromJson(json);
+  factory IdvVerificationData.fromJson(Map<String, dynamic> json) =>
+      _$IdvVerificationDataFromJson(json);
   Map<String, dynamic> toJson() => _$IdvVerificationDataToJson(this);
 }
 
@@ -730,19 +776,30 @@ class CreateCreditCardRequest {
 
   String get name => _name != null && _name.isNotEmpty ? _name : null;
   set name(String v) => _name = v;
-  String get securityCode => _securityCode != null && _securityCode.isNotEmpty ? _securityCode : null;
+
+  String get securityCode =>
+      _securityCode != null && _securityCode.isNotEmpty ? _securityCode : null;
   set securityCode(String v) => _securityCode = v;
+
   String get street => _street != null && _street.isNotEmpty ? _street : null;
   set street(String v) => _street = v;
+
   String get city => _city != null && _city.isNotEmpty ? _city : null;
   set city(String v) => _city = v;
-  String get country => _country != null && _country.isNotEmpty ? _country : null;
+
+  String get country =>
+      _country != null && _country.isNotEmpty ? _country : null;
   set country(String v) => _country = v;
+
   String get state => _state != null && _state.isNotEmpty ? _state : null;
   set state(String v) => _state = v;
-  String get postalCode => _postalCode != null && _postalCode.isNotEmpty ? _postalCode : null;
+
+  String get postalCode =>
+      _postalCode != null && _postalCode.isNotEmpty ? _postalCode : null;
   set postalCode(String v) => _postalCode = v;
-  String get deviceId => _deviceId != null && _deviceId.isNotEmpty ? _deviceId : null;
+
+  String get deviceId =>
+      _deviceId != null && _deviceId.isNotEmpty ? _deviceId : null;
   set deviceId(String v) => _deviceId = v;
 
   Map<String, dynamic> toJson() => _$CreateCreditCardRequestToJson(this);
@@ -787,7 +844,8 @@ class GPRAccount extends BaseResource {
       Map<String, Link> links})
       : super(links: links);
 
-  factory GPRAccount.fromJson(Map<String, dynamic> json) => _$GPRAccountFromJson(json);
+  factory GPRAccount.fromJson(Map<String, dynamic> json) =>
+      _$GPRAccountFromJson(json);
 
   Map<String, dynamic> toJson() => _$GPRAccountToJson(this);
 }
@@ -801,7 +859,8 @@ class FCMEvent {
 
   FCMEvent({this.type, this.version, this.metadata, this.payload});
 
-  factory FCMEvent.fromJson(Map<String, dynamic> json) => _$FCMEventFromJson(json);
+  factory FCMEvent.fromJson(Map<String, dynamic> json) =>
+      _$FCMEventFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -813,11 +872,13 @@ class FitPayEvent {
 
   String get creditCardId => payload['creditCardId'] ?? null;
   String get userId => payload['userId'] ?? null;
-  String get deviceId => payload['deviceId'] ?? payload['deviceIdentifier'] ?? null;
+  String get deviceId =>
+      payload['deviceId'] ?? payload['deviceIdentifier'] ?? null;
 
   FitPayEvent({this.type, this.version, this.payload, this.metadata});
 
-  factory FitPayEvent.fromJson(Map<String, dynamic> json) => _$FitPayEventFromJson(json);
+  factory FitPayEvent.fromJson(Map<String, dynamic> json) =>
+      _$FitPayEventFromJson(json);
 }
 
 @JsonSerializable(nullable: true)
@@ -847,7 +908,8 @@ class GPRTransaction extends BaseResource {
       Map<String, Link> links})
       : super(links: links);
 
-  factory GPRTransaction.fromJson(Map<String, dynamic> json) => _$GPRTransactionFromJson(json);
+  factory GPRTransaction.fromJson(Map<String, dynamic> json) =>
+      _$GPRTransactionFromJson(json);
 
   Map<String, dynamic> toJson() => _$GPRTransactionToJson(this);
 }
@@ -873,7 +935,8 @@ class FundingSource extends BaseResource {
       Map<String, Link> links})
       : super(links: links);
 
-  factory FundingSource.fromJson(Map<String, dynamic> json) => _$FundingSourceFromJson(json);
+  factory FundingSource.fromJson(Map<String, dynamic> json) =>
+      _$FundingSourceFromJson(json);
 
   Map<String, dynamic> toJson() => _$FundingSourceToJson(this);
 
@@ -922,12 +985,7 @@ class Funding extends BaseResource {
   String description;
   double fundingAmount;
 
-  static String dateToJson(DateTime date) => (date?.toUtc()?.toIso8601String()) ?? '';
-  static DateTime dateFromJson(String str) => (str != null && !str.isEmpty) ? DateTime.parse(str) : null;
-  @JsonKey(
-    fromJson: dateFromJson,
-    toJson: dateToJson
-  )
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime nextFundingTs;
   bool isRecurring;
   double lowAmountTopUp;
@@ -935,25 +993,26 @@ class Funding extends BaseResource {
   String displayName;
   FundingType fundingType;
 
-  Funding({this.fundingState,
-    this.fundingId,
-    this.accountId,
-    this.fundingSourceId,
-    this.description,
-    this.fundingAmount,
-    this.nextFundingTs,
-    this.isRecurring = false,
-    this.lowAmountTopUp,
-    this.topAmountTopUp,
-    this.displayName,
-    this.fundingType,
-    Map<String, Link> links})
-    : super(links: links);
+  Funding(
+      {this.fundingState,
+      this.fundingId,
+      this.accountId,
+      this.fundingSourceId,
+      this.description,
+      this.fundingAmount,
+      this.nextFundingTs,
+      this.isRecurring = false,
+      this.lowAmountTopUp,
+      this.topAmountTopUp,
+      this.displayName,
+      this.fundingType,
+      Map<String, Link> links})
+      : super(links: links);
 
-  factory Funding.fromJson(Map<String, dynamic> json) => _$FundingFromJson(json);
+  factory Funding.fromJson(Map<String, dynamic> json) =>
+      _$FundingFromJson(json);
 
   Map<String, dynamic> toJson() => _$FundingToJson(this);
-
 }
 
 enum JsonPatchOp {
@@ -1022,7 +1081,7 @@ class Application extends BaseResource {
   final String dateSubmitedTs;
   final String dateCreatedTs;
   final String lastModifiedTs;
-  final List<ApplicationSteps> kycSteps;
+  final List<ApplicationPage> kycSteps;
   final int dateSubmitedTsEpoch;
   final int dateCreatedTsEpoch;
   final int lastModifiedTsEpoch;
@@ -1044,23 +1103,99 @@ class Application extends BaseResource {
       Map<String, Link> links})
       : super(links: links);
 
-  factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
+  factory Application.fromJson(Map<String, dynamic> json) =>
+      _$ApplicationFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApplicationToJson(this);
 }
 
 @JsonSerializable(nullable: true)
-class ApplicationSteps extends BaseResource {
-  final String stepId;
+class ApplicationPage extends BaseResource {
+  final String pageId;
   final String name;
-  final String type;
-  final String value;
+  final int length;
+  final int index;
+  final List<ApplicationField> fields;
+
+  ApplicationPage({this.pageId, this.name, this.length, this.index, this.fields});
+
+  factory ApplicationPage.fromJson(Map<String, dynamic> json) =>
+      _$ApplicationPageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApplicationPageToJson(this);
+}
+
+enum FieldType {
+  @JsonValue("TEXT")
+  text,
+  @JsonValue("DECIMAL")
+  decimal,
+  @JsonValue("FLOAT")
+  float,
+  @JsonValue("DATE")
+  date
+}
+
+@JsonSerializable(nullable: true)
+class ApplicationField extends BaseResource {
+  final String fieldId;
+  final String name;
+  @JsonKey(name: "value")
+  final String _value;
   final String regex;
-  final int page;
+  final bool optional;
+  final FieldType type;
+  final int index;
 
-  ApplicationSteps({this.stepId, this.page, this.name, this.type, this.value, this.regex});
+  static String _valueToJson(FieldType fieldType, dynamic value) {
+    switch (fieldType) {
+      case FieldType.text:
+        return value;
+        break;
+      case FieldType.date:
+        return _dateTimeToJson(value);
+        break;
+      case FieldType.decimal:
+        return value.toString();
+        break;
+      case FieldType.float:
+        return value.toString();
+    }
+    return '';
+  }
 
-  factory ApplicationSteps.fromJson(Map<String, dynamic> json) => _$ApplicationStepsFromJson(json);
+  dynamic get value {
+    switch (type) {
+      case FieldType.text:
+        return _value;
+        break;
+      case FieldType.decimal:
+        return int.parse(_value);
+        break;
+      case FieldType.date:
+        return _dateTimeFromJson(_value);
+        break;
+      case FieldType.float:
+        return double.parse(_value);
+        break;
+    }
+  }
 
-  Map<String, dynamic> toJson() => _$ApplicationStepsToJson(this);
+  String get jsonValue => _value;
+
+  ApplicationField(
+      {this.fieldId,
+      this.name,
+      dynamic value,
+      this.regex,
+      this.index,
+      this.optional = false,
+      FieldType type = FieldType.text})
+      : _value = _valueToJson(type, value),
+        type = type;
+
+  factory ApplicationField.fromJson(Map<String, dynamic> json) =>
+      _$ApplicationFieldFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApplicationFieldToJson(this);
 }

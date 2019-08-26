@@ -831,7 +831,7 @@ Funding _$FundingFromJson(Map<String, dynamic> json) {
     fundingSourceId: json['fundingSourceId'] as String,
     description: json['description'] as String,
     fundingAmount: (json['fundingAmount'] as num)?.toDouble(),
-    nextFundingTs: Funding.dateFromJson(json['nextFundingTs'] as String),
+    nextFundingTs: _dateTimeFromJson(json['nextFundingTs'] as String),
     isRecurring: json['isRecurring'] as bool,
     lowAmountTopUp: (json['lowAmountTopUp'] as num)?.toDouble(),
     topAmountTopUp: (json['topAmountTopUp'] as num)?.toDouble(),
@@ -852,7 +852,7 @@ Map<String, dynamic> _$FundingToJson(Funding instance) => <String, dynamic>{
       'fundingSourceId': instance.fundingSourceId,
       'description': instance.description,
       'fundingAmount': instance.fundingAmount,
-      'nextFundingTs': Funding.dateToJson(instance.nextFundingTs),
+      'nextFundingTs': _dateTimeToJson(instance.nextFundingTs),
       'isRecurring': instance.isRecurring,
       'lowAmountTopUp': instance.lowAmountTopUp,
       'topAmountTopUp': instance.topAmountTopUp,
@@ -938,7 +938,7 @@ Application _$ApplicationFromJson(Map<String, dynamic> json) {
     kycSteps: (json['kycSteps'] as List)
         ?.map((e) => e == null
             ? null
-            : ApplicationSteps.fromJson(e as Map<String, dynamic>))
+            : ApplicationPage.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
     dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
@@ -973,23 +973,55 @@ const _$ApplicationStateEnumMap = <ApplicationState, dynamic>{
   ApplicationState.DECLINED: 'DECLINED'
 };
 
-ApplicationSteps _$ApplicationStepsFromJson(Map<String, dynamic> json) {
-  return ApplicationSteps(
-    stepId: json['stepId'] as String,
-    page: json['page'] as int,
+ApplicationPage _$ApplicationPageFromJson(Map<String, dynamic> json) {
+  return ApplicationPage(
+    pageId: json['pageId'] as String,
     name: json['name'] as String,
-    type: json['type'] as String,
-    value: json['value'] as String,
-    regex: json['regex'] as String,
+    length: json['length'] as int,
+    index: json['index'] as int,
+    fields: (json['fields'] as List)
+        ?.map((e) => e == null
+            ? null
+            : ApplicationField.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
   );
 }
 
-Map<String, dynamic> _$ApplicationStepsToJson(ApplicationSteps instance) =>
+Map<String, dynamic> _$ApplicationPageToJson(ApplicationPage instance) =>
     <String, dynamic>{
-      'stepId': instance.stepId,
+      'pageId': instance.pageId,
       'name': instance.name,
-      'type': instance.type,
-      'value': instance.value,
-      'regex': instance.regex,
-      'page': instance.page,
+      'length': instance.length,
+      'index': instance.index,
+      'fields': instance.fields,
     };
+
+ApplicationField _$ApplicationFieldFromJson(Map<String, dynamic> json) {
+  return ApplicationField(
+    fieldId: json['fieldId'] as String,
+    name: json['name'] as String,
+    value: json['value'],
+    regex: json['regex'] as String,
+    index: json['index'] as int,
+    optional: json['optional'] as bool,
+    type: _$enumDecodeNullable(_$FieldTypeEnumMap, json['type']),
+  );
+}
+
+Map<String, dynamic> _$ApplicationFieldToJson(ApplicationField instance) =>
+    <String, dynamic>{
+      'fieldId': instance.fieldId,
+      'name': instance.name,
+      'regex': instance.regex,
+      'optional': instance.optional,
+      'type': _$FieldTypeEnumMap[instance.type],
+      'index': instance.index,
+      'value': instance.value,
+    };
+
+const _$FieldTypeEnumMap = <FieldType, dynamic>{
+  FieldType.text: 'TEXT',
+  FieldType.decimal: 'DECIMAL',
+  FieldType.float: 'FLOAT',
+  FieldType.date: 'DATE'
+};

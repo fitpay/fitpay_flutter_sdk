@@ -1060,6 +1060,26 @@ class API {
     print("Patching application: ${response.statusCode}: ${response.body}");
   }
 
+  Future<http.Response> patchApplicationPages(Uri uri, List<ApplicationPage> pages) async {
+    List<Map<String, dynamic>> patchRequests = [];
+    for (var page in pages) {
+      for (var field in page.fields) {
+        patchRequests.add({
+            'op': 'replace',
+            'path': '/kycPages/${page.index}/fields/${field.index}/value',
+            'value': field.jsonValue,
+          });
+      }
+    }
+
+    final body = json.encode(patchRequests);
+    
+    var response = await http.patch(uri.toString(), body: body, headers: await _headers());
+
+    print("Patched application: ${response.statusCode}: ${response.body}");
+    return response;
+  }
+
   Future<Application> submitApplication(Uri uri) async {
     var response = await _httpClient.post(uri.toString(), headers: await _headers());
 
