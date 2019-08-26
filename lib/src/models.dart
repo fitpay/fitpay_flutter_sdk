@@ -1128,12 +1128,12 @@ class ApplicationPage extends BaseResource {
 enum FieldType {
   @JsonValue("TEXT")
   text,
-  @JsonValue("DECIMAL")
-  decimal,
-  @JsonValue("FLOAT")
-  float,
+  @JsonValue("NUMERIC")
+  numeric,
   @JsonValue("DATE")
-  date
+  date,
+  @JsonValue("SECRET")
+  secret,
 }
 
 @JsonSerializable(nullable: true)
@@ -1149,16 +1149,14 @@ class ApplicationField extends BaseResource {
 
   static String _valueToJson(FieldType fieldType, dynamic value) {
     switch (fieldType) {
+      case FieldType.secret:
       case FieldType.text:
         return value;
         break;
       case FieldType.date:
         return _dateTimeToJson(value);
         break;
-      case FieldType.decimal:
-        return value.toString();
-        break;
-      case FieldType.float:
+      case FieldType.numeric:
         return value.toString();
     }
     return '';
@@ -1166,18 +1164,15 @@ class ApplicationField extends BaseResource {
 
   dynamic get value {
     switch (type) {
+      case FieldType.secret:
       case FieldType.text:
         return _value;
-        break;
-      case FieldType.decimal:
-        return int.parse(_value);
         break;
       case FieldType.date:
         return _dateTimeFromJson(_value);
         break;
-      case FieldType.float:
-        return double.parse(_value);
-        break;
+      case FieldType.numeric:
+        return int.tryParse(_value) ?? double.parse(_value);
     }
   }
 
