@@ -1141,7 +1141,7 @@ class ApplicationField extends BaseResource {
   final String fieldId;
   final String name;
   @JsonKey(name: "value")
-  final String _value;
+  String _value;
   final String regex;
   final bool optional;
   final FieldType type;
@@ -1180,6 +1180,8 @@ class ApplicationField extends BaseResource {
         break;
     }
   }
+
+  set value (dynamic newValue) => _value = _valueToJson(type, newValue);
 
   String get jsonValue => _value;
 
