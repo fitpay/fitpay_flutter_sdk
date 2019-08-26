@@ -1132,8 +1132,10 @@ enum FieldType {
   numeric,
   @JsonValue("DATE")
   date,
-  @JsonValue("SECRET")
-  secret,
+  @JsonValue("SECRET_TEXT")
+  secretText,
+  @JsonValue("SECRET_NUMERIC")
+  secretNumeric,
 }
 
 @JsonSerializable(nullable: true)
@@ -1149,13 +1151,14 @@ class ApplicationField extends BaseResource {
 
   static String _valueToJson(FieldType fieldType, dynamic value) {
     switch (fieldType) {
-      case FieldType.secret:
+      case FieldType.secretText:
       case FieldType.text:
         return value;
         break;
       case FieldType.date:
         return _dateTimeToJson(value);
         break;
+      case FieldType.secretNumeric:
       case FieldType.numeric:
         return value.toString();
     }
@@ -1164,13 +1167,14 @@ class ApplicationField extends BaseResource {
 
   dynamic get value {
     switch (type) {
-      case FieldType.secret:
+      case FieldType.secretText:
       case FieldType.text:
         return _value;
         break;
       case FieldType.date:
         return _dateTimeFromJson(_value);
         break;
+      case FieldType.secretNumeric:
       case FieldType.numeric:
         return int.tryParse(_value) ?? double.parse(_value);
     }
