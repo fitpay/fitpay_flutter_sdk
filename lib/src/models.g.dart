@@ -866,6 +866,50 @@ const _$FundingStateEnumMap = <FundingState, dynamic>{
   FundingState.ERROR: 'ERROR'
 };
 
+Program _$ProgramFromJson(Map<String, dynamic> json) {
+  return Program(
+    programId: json['programId'] as String,
+    programName: json['programName'] as String,
+    programType:
+        _$enumDecodeNullable(_$ProgramTypeEnumMap, json['programType']),
+    createdTsEpoch: json['createdTsEpoch'] as String,
+    lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as String,
+    kycSteps: (json['kycSteps'] as List)
+        ?.map((e) =>
+            e == null ? null : KycStep.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$ProgramToJson(Program instance) => <String, dynamic>{
+      'programId': instance.programId,
+      'programName': instance.programName,
+      'programType': _$ProgramTypeEnumMap[instance.programType],
+      'createdTsEpoch': instance.createdTsEpoch,
+      'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
+      'kycSteps': instance.kycSteps,
+    };
+
+const _$ProgramTypeEnumMap = <ProgramType, dynamic>{
+  ProgramType.GPR: 'GPR',
+  ProgramType.PREPAID: 'PREPAID',
+  ProgramType.FLIP: 'FLIP'
+};
+
+KycStep _$KycStepFromJson(Map<String, dynamic> json) {
+  return KycStep(
+    title: json['title'] as String,
+    entries: (json['entries'] as List)
+        .map((e) => KycEntry.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$KycStepToJson(KycStep instance) => <String, dynamic>{
+      'title': instance.title,
+      'entries': instance.entries,
+    };
+
 JsonPatch _$JsonPatchFromJson(Map<String, dynamic> json) {
   return JsonPatch(
     op: _$enumDecodeNullable(_$JsonPatchOpEnumMap, json['op']),
@@ -885,6 +929,88 @@ const _$JsonPatchOpEnumMap = <JsonPatchOp, dynamic>{
   JsonPatchOp.remove: 'remove',
   JsonPatchOp.replace: 'replace'
 };
+
+Application _$ApplicationFromJson(Map<String, dynamic> json) {
+  return Application(
+    values: (json['values'] as Map<String, dynamic>)?.map(
+      (k, e) => MapEntry(k, e as String),
+    ),
+  );
+}
+
+Map<String, dynamic> _$ApplicationToJson(Application instance) =>
+    <String, dynamic>{
+      'values': instance.values,
+    };
+
+KycEntry _$KycEntryFromJson(Map<String, dynamic> json) {
+  return KycEntry(
+    type: _$enumDecode(_$KycEntryTypeEnumMap, json['type']),
+  );
+}
+
+Map<String, dynamic> _$KycEntryToJson(KycEntry instance) => <String, dynamic>{
+      'type': _$KycEntryTypeEnumMap[instance.type],
+    };
+
+const _$KycEntryTypeEnumMap = <KycEntryType, dynamic>{
+  KycEntryType.GROUP: 'GROUP',
+  KycEntryType.FIELD: 'FIELD'
+};
+
+KycField _$KycFieldFromJson(Map<String, dynamic> json) {
+  return KycField(
+    id: json['id'] as String,
+    fieldType: _$enumDecodeNullable(_$KycFieldTypeEnumMap, json['fieldType']),
+    dataType: _$enumDecodeNullable(_$KycDataTypeEnumMap, json['dataType']),
+    obscured: json['obscured'] as bool,
+    regex: json['regex'] as String,
+  );
+}
+
+Map<String, dynamic> _$KycFieldToJson(KycField instance) => <String, dynamic>{
+      'id': instance.id,
+      'fieldType': _$KycFieldTypeEnumMap[instance.fieldType],
+      'dataType': _$KycDataTypeEnumMap[instance.dataType],
+      'obscured': instance.obscured,
+      'regex': instance.regex,
+    };
+
+const _$KycFieldTypeEnumMap = <KycFieldType, dynamic>{
+  KycFieldType.PHONE_NUMBER: 'PHONE_NUMBER',
+  KycFieldType.SOCIAL_SECURITY: 'SOCIAL_SECURITY',
+  KycFieldType.EMAIL: 'EMAIL',
+  KycFieldType.STREET: 'STREET',
+  KycFieldType.CITY: 'CITY',
+  KycFieldType.ZIP: 'ZIP',
+  KycFieldType.COUNTRY: 'COUNTRY',
+  KycFieldType.STATE: 'STATE',
+  KycFieldType.DATE_OF_BIRTH: 'DATE_OF_BIRTH',
+  KycFieldType.FIRST_NAME: 'FIRST_NAME',
+  KycFieldType.LAST_NAME: 'LAST_NAME'
+};
+
+const _$KycDataTypeEnumMap = <KycDataType, dynamic>{
+  KycDataType.BOOL: 'BOOL',
+  KycDataType.DATE: 'DATE',
+  KycDataType.FLOAT: 'FLOAT',
+  KycDataType.INT: 'INT',
+  KycDataType.STRING: 'STRING'
+};
+
+KycGroup _$KycGroupFromJson(Map<String, dynamic> json) {
+  return KycGroup(
+    groupType: json['groupType'] as String,
+    fields: (json['fields'] as List)
+        .map((e) => KycField.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$KycGroupToJson(KycGroup instance) => <String, dynamic>{
+      'groupType': instance.groupType,
+      'fields': instance.fields,
+    };
 
 PaymentDeviceInformation _$PaymentDeviceInformationFromJson(
     Map<String, dynamic> json) {
@@ -922,106 +1048,3 @@ Map<String, dynamic> _$PaymentDeviceInformationToJson(
       'deviceType': _$DeviceTypeEnumMap[instance.deviceType],
       'secureElement': instance.secureElement,
     };
-
-Application _$ApplicationFromJson(Map<String, dynamic> json) {
-  return Application(
-    applicationId: json['applicationId'] as String,
-    applicationState: _$enumDecodeNullable(
-        _$ApplicationStateEnumMap, json['applicationState']),
-    accountId: json['accountId'] as String,
-    cardId: json['cardId'] as String,
-    userId: json['userId'] as String,
-    programId: json['programId'] as String,
-    dateSubmitedTs: json['dateSubmitedTs'] as String,
-    dateCreatedTs: json['dateCreatedTs'] as String,
-    lastModifiedTs: json['lastModifiedTs'] as String,
-    kycSteps: (json['kycSteps'] as List)
-        ?.map((e) => e == null
-            ? null
-            : ApplicationPage.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
-    dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
-    lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as int,
-    links: (json['_links'] as Map<String, dynamic>).map(
-      (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
-    ),
-  );
-}
-
-Map<String, dynamic> _$ApplicationToJson(Application instance) =>
-    <String, dynamic>{
-      '_links': instance.links,
-      'applicationId': instance.applicationId,
-      'applicationState': _$ApplicationStateEnumMap[instance.applicationState],
-      'accountId': instance.accountId,
-      'cardId': instance.cardId,
-      'userId': instance.userId,
-      'programId': instance.programId,
-      'dateSubmitedTs': instance.dateSubmitedTs,
-      'dateCreatedTs': instance.dateCreatedTs,
-      'lastModifiedTs': instance.lastModifiedTs,
-      'kycSteps': instance.kycSteps,
-      'dateSubmitedTsEpoch': instance.dateSubmitedTsEpoch,
-      'dateCreatedTsEpoch': instance.dateCreatedTsEpoch,
-      'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
-    };
-
-const _$ApplicationStateEnumMap = <ApplicationState, dynamic>{
-  ApplicationState.NEW: 'NEW',
-  ApplicationState.APPROVED: 'APPROVED',
-  ApplicationState.DECLINED: 'DECLINED'
-};
-
-ApplicationPage _$ApplicationPageFromJson(Map<String, dynamic> json) {
-  return ApplicationPage(
-    pageId: json['pageId'] as String,
-    name: json['name'] as String,
-    length: json['length'] as int,
-    index: json['index'] as int,
-    fields: (json['fields'] as List)
-        ?.map((e) => e == null
-            ? null
-            : ApplicationField.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-  );
-}
-
-Map<String, dynamic> _$ApplicationPageToJson(ApplicationPage instance) =>
-    <String, dynamic>{
-      'pageId': instance.pageId,
-      'name': instance.name,
-      'length': instance.length,
-      'index': instance.index,
-      'fields': instance.fields,
-    };
-
-ApplicationField _$ApplicationFieldFromJson(Map<String, dynamic> json) {
-  return ApplicationField(
-    fieldId: json['fieldId'] as String,
-    name: json['name'] as String,
-    value: json['value'],
-    regex: json['regex'] as String,
-    index: json['index'] as int,
-    optional: json['optional'] as bool,
-    type: _$enumDecodeNullable(_$FieldTypeEnumMap, json['type']),
-  );
-}
-
-Map<String, dynamic> _$ApplicationFieldToJson(ApplicationField instance) =>
-    <String, dynamic>{
-      'fieldId': instance.fieldId,
-      'name': instance.name,
-      'regex': instance.regex,
-      'optional': instance.optional,
-      'type': _$FieldTypeEnumMap[instance.type],
-      'index': instance.index,
-      'value': instance.value,
-    };
-
-const _$FieldTypeEnumMap = <FieldType, dynamic>{
-  FieldType.text: 'TEXT',
-  FieldType.decimal: 'DECIMAL',
-  FieldType.float: 'FLOAT',
-  FieldType.date: 'DATE'
-};

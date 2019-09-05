@@ -968,11 +968,8 @@ enum FundingType {
 }
 
 enum FundingState {
-  @JsonValue("ACTIVE")
   ACTIVE,
-  @JsonValue("STOPPED")
   STOPPED,
-  @JsonValue("ERROR")
   ERROR
 }
 
@@ -1015,12 +1012,46 @@ class Funding extends BaseResource {
   Map<String, dynamic> toJson() => _$FundingToJson(this);
 }
 
+enum ProgramType {
+  GPR, PREPAID, FLIP
+}
+
+@JsonSerializable(nullable: true)
+class Program extends BaseResource {
+  final String programId;
+  final String programName;
+  final ProgramType programType;
+  final String createdTsEpoch;
+  final String lastModifiedTsEpoch;
+  final List<KycStep> kycSteps;
+
+  Program({this.programId,
+  this.programName,
+  this.programType,
+  this.createdTsEpoch,
+  this.lastModifiedTsEpoch,
+  this.kycSteps});
+
+  factory Program.fromJson(Map<String, dynamic> json) => _$ProgramFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProgramToJson(this);
+}
+
+@JsonSerializable(nullable: false)
+class KycStep {
+  final String title;
+  final List<KycEntry> entries;
+
+  KycStep({this.title, this.entries});
+
+  factory KycStep.fromJson(Map<String, dynamic> json) => _$KycStepFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KycStepToJson(this);
+}
+
 enum JsonPatchOp {
-  @JsonValue('add')
   add,
-  @JsonValue('remove')
   remove,
-  @JsonValue('replace')
   replace
 }
 
@@ -1032,7 +1063,109 @@ class JsonPatch {
 
   JsonPatch({this.op, this.path, this.value});
 
+  factory JsonPatch.fromKycField(KycField field) => JsonPatch(
+    op: JsonPatchOp.replace,
+    path: "/${field.id}",
+    value: field.value.toString()
+  );
+
   Map<String, dynamic> toJson() => _$JsonPatchToJson(this);
+}
+
+@JsonSerializable(nullable: true)
+class Application extends BaseResource {
+  final Map<String, String> values;
+
+  Application({this.values});
+
+  factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApplicationToJson(this);
+}
+
+enum KycEntryType {
+  GROUP,
+  FIELD
+}
+
+@JsonSerializable(nullable: false)
+abstract class KycEntry {
+  final KycEntryType type;
+
+  KycEntry({this.type});
+
+  factory KycEntry.fromJson(Map<String, dynamic> json) {
+    final type = _$KycEntryTypeEnumMap[json["entryType"]];
+    if (type == KycEntryType.FIELD) {
+      return KycField.fromJson(json);
+    }
+    return KycGroup.fromJson(json);
+  }
+
+  Map<String, dynamic> toJson() => _$KycEntryToJson(this);
+}
+
+enum KycDataType {
+  BOOL,
+  DATE,
+  FLOAT,
+  INT,
+  STRING,
+}
+
+enum KycFieldType {
+  PHONE_NUMBER,
+  SOCIAL_SECURITY,
+  EMAIL,
+  STREET,
+  CITY,
+  ZIP,
+  COUNTRY,
+  STATE,
+  DATE_OF_BIRTH,
+  FIRST_NAME,
+  LAST_NAME
+}
+
+@JsonSerializable(nullable: true)
+class KycField extends KycEntry {
+  final String id;
+  final KycFieldType fieldType;
+  final KycDataType dataType;
+  final bool obscured;
+  final String regex;
+  @JsonKey(ignore: true)
+  dynamic value;
+  
+  KycField({
+    KycEntryType entryType,
+    this.id,
+    this.fieldType,
+    this.dataType,
+    this.obscured,
+    this.regex = ".*"
+  })
+    : super(type: entryType);
+
+  factory KycField.fromJson(Map<String, dynamic> json) => _$KycFieldFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KycFieldToJson(this);
+}
+
+@JsonSerializable(nullable: false)
+class KycGroup extends KycEntry {
+  final String groupType;
+  final List<KycField> fields;
+
+  KycGroup({
+    KycEntryType entryType,
+    this.groupType,
+    this.fields
+  }): super(type: entryType);
+
+  factory KycGroup.fromJson(Map<String, dynamic> json) => _$KycGroupFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KycGroupToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -1066,137 +1199,4 @@ class PaymentDeviceInformation {
       this.secureElement});
 
   Map<String, dynamic> toJson() => _$PaymentDeviceInformationToJson(this);
-}
-
-enum ApplicationState { NEW, APPROVED, DECLINED }
-
-@JsonSerializable(nullable: true)
-class Application extends BaseResource {
-  final String applicationId;
-  final ApplicationState applicationState;
-  final String accountId;
-  final String cardId;
-  final String userId;
-  final String programId;
-  final String dateSubmitedTs;
-  final String dateCreatedTs;
-  final String lastModifiedTs;
-  final List<ApplicationPage> kycSteps;
-  final int dateSubmitedTsEpoch;
-  final int dateCreatedTsEpoch;
-  final int lastModifiedTsEpoch;
-
-  Application(
-      {this.applicationId,
-      this.applicationState,
-      this.accountId,
-      this.cardId,
-      this.userId,
-      this.programId,
-      this.dateSubmitedTs,
-      this.dateCreatedTs,
-      this.lastModifiedTs,
-      this.kycSteps,
-      this.dateSubmitedTsEpoch,
-      this.dateCreatedTsEpoch,
-      this.lastModifiedTsEpoch,
-      Map<String, Link> links})
-      : super(links: links);
-
-  factory Application.fromJson(Map<String, dynamic> json) =>
-      _$ApplicationFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ApplicationToJson(this);
-}
-
-@JsonSerializable(nullable: true)
-class ApplicationPage extends BaseResource {
-  final String pageId;
-  final String name;
-  final int length;
-  final int index;
-  final List<ApplicationField> fields;
-
-  ApplicationPage({this.pageId, this.name, this.length, this.index, this.fields});
-
-  factory ApplicationPage.fromJson(Map<String, dynamic> json) =>
-      _$ApplicationPageFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ApplicationPageToJson(this);
-}
-
-enum FieldType {
-  @JsonValue("TEXT")
-  text,
-  @JsonValue("NUMERIC")
-  numeric,
-  @JsonValue("DATE")
-  date,
-  @JsonValue("SECRET_TEXT")
-  secretText,
-  @JsonValue("SECRET_NUMERIC")
-  secretNumeric,
-}
-
-@JsonSerializable(nullable: true)
-class ApplicationField extends BaseResource {
-  final String fieldId;
-  final String name;
-  @JsonKey(name: "value")
-  String _value;
-  final String regex;
-  final bool optional;
-  final FieldType type;
-  final int index;
-
-  static String _valueToJson(FieldType fieldType, dynamic value) {
-    switch (fieldType) {
-      case FieldType.secretText:
-      case FieldType.text:
-        return value;
-        break;
-      case FieldType.date:
-        return _dateTimeToJson(value);
-        break;
-      case FieldType.secretNumeric:
-      case FieldType.numeric:
-        return value.toString();
-    }
-    return '';
-  }
-
-  dynamic get value {
-    switch (type) {
-      case FieldType.secretText:
-      case FieldType.text:
-        return _value;
-        break;
-      case FieldType.date:
-        return _dateTimeFromJson(_value);
-        break;
-      case FieldType.secretNumeric:
-      case FieldType.numeric:
-        return int.tryParse(_value) ?? double.parse(_value);
-    }
-  }
-
-  set value (dynamic newValue) => _value = _valueToJson(type, newValue);
-
-  String get jsonValue => _value;
-
-  ApplicationField(
-      {this.fieldId,
-      this.name,
-      dynamic value,
-      this.regex,
-      this.index,
-      this.optional = false,
-      FieldType type = FieldType.text})
-      : _value = _valueToJson(type, value),
-        type = type;
-
-  factory ApplicationField.fromJson(Map<String, dynamic> json) =>
-      _$ApplicationFieldFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ApplicationFieldToJson(this);
 }

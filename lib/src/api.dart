@@ -1048,36 +1048,23 @@ class API {
     return null;
   }
 
-  Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
-    var body = json.encode([
-      {'op': 'replace',
-      'path': '/kycSteps/$stepNum/value',
-      'value': ((value is DateTime) ? value.toIso8601String() : value) }
-    ]);
+  Future<void> patchApplication(Uri uri, List<KycStep> steps) async {
+    List<JsonPatch> patchBody = List();
 
-    var response = await http.patch(uri.toString(), body: body, headers: await _headers());
+    steps.forEach((step) {
+      step.entries.forEach((entry) {
+        if (entry is KycField) {
+          patchBody.add(JsonPatch.fromKycField(entry));
+        } else {
+          (entry as KycGroup).fields.forEach((field) =>
+              patchBody.add(JsonPatch.fromKycField(field)));
+        }
+      });
+    });
 
-    print("Patching application: ${response.statusCode}: ${response.body}");
-  }
+    final resp = await _httpClient.patch(uri, headers: await _headers(), body: jsonEncode(patchBody));
 
-  Future<http.Response> patchApplicationPages(Uri uri, List<ApplicationPage> pages) async {
-    List<Map<String, dynamic>> patchRequests = [];
-    for (var page in pages) {
-      for (var field in page.fields) {
-        patchRequests.add({
-            'op': 'replace',
-            'path': '/kycPages/${page.index}/fields/${field.index}/value',
-            'value': field.jsonValue,
-          });
-      }
-    }
-
-    final body = json.encode(patchRequests);
-    
-    var response = await http.patch(uri.toString(), body: body, headers: await _headers());
-
-    print("Patched application: ${response.statusCode}: ${response.body}");
-    return response;
+    if (resp.statusCode != 200) throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
   }
 
   Future<Application> submitApplication(Uri uri) async {
