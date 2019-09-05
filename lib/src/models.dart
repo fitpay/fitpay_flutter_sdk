@@ -1025,6 +1025,14 @@ class Program extends BaseResource {
   final String lastModifiedTsEpoch;
   final List<KycStep> kycSteps;
 
+  List<KycField> get allFields => kycSteps.expand((KycStep step) => step.entries.expand((entry) {
+    if (entry is KycField) {
+      return [entry];
+    } else {
+      return (entry as KycGroup).fields;
+    }
+  }));
+
   Program({this.programId,
   this.programName,
   this.programType,

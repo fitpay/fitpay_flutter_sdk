@@ -1036,31 +1036,24 @@ class API {
     throw response.statusCode;
   }
 
-  Future<Application> getApplication(Uri uri) async {
-    var response = await _httpClient.get(uri.toString(), headers: await _headers());
-
-    print("Application ${response.body}");
-
-    if (response.statusCode == 200) {
-      return Application.fromJson(jsonDecode(response.body));
-    }
-
-    return null;
+  Future<Program> getProgramWithKycValues({Uri programUri, Uri applicationUri}) async {
+    Program program = Program.fromJson(
+      jsonDecode(
+        (await _httpClient.get(programUri, headers: await _headers()))
+        .body));
+    await updateKycFieldsWithValues(applicationUri, program);
+    return program;
   }
 
-  Future<void> patchApplication(Uri uri, List<KycStep> steps) async {
-    List<JsonPatch> patchBody = List();
-
-    steps.forEach((step) {
-      step.entries.forEach((entry) {
-        if (entry is KycField) {
-          patchBody.add(JsonPatch.fromKycField(entry));
-        } else {
-          (entry as KycGroup).fields.forEach((field) =>
-              patchBody.add(JsonPatch.fromKycField(field)));
-        }
-      });
+  Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
+    return _httpClient.get(uri, headers: await _headers()).then((response) {
+      final values = Application.fromJson(jsonDecode(response.body)).values;
+      program.allFields.forEach((field) => field.value = values[field.id]);
     });
+  }
+
+  Future<void> patchApplication(Uri uri, {@required Program program}) async {
+    List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field));
 
     final resp = await _httpClient.patch(uri, headers: await _headers(), body: jsonEncode(patchBody));
 
