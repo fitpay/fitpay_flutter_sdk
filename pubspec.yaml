@@ -5,12 +5,12 @@ author: FitPay Inc, (sdk@fit-pay.com)
 homepage: https://www.fit-pay.com
 
 environment:
-    sdk: '>=2.2.2 <3.0.0'
+    sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
     flutter:
         sdk: flutter
-    json_annotation: ^2.4.0
+    json_annotation: ^3.0.0
     json_serializable: ^3.0.0
     corsac_jwt: ^0.1.2
     http: ^0.12.0+2

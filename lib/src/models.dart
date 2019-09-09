@@ -1168,8 +1168,8 @@ enum GroupType {
 
 @JsonSerializable(nullable: false)
 class KycGroup extends KycEntry {
-  @JsonKey(unknownEnumValue: GroupType.UNKNOWN)
   final GroupType groupType;
+  @JsonKey(unknownEnumValue: GroupType.UNKNOWN)
   final Map<KycFieldType, KycField> fields;
 
   KycGroup({
