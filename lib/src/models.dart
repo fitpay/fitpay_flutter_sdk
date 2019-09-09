@@ -1025,13 +1025,7 @@ class Program extends BaseResource {
   final String lastModifiedTsEpoch;
   final List<KycStep> kycSteps;
 
-  List<KycField> get allFields => kycSteps.expand((KycStep step) => step.entries.expand((entry) {
-    if (entry is KycField) {
-      return [entry];
-    } else {
-      return (entry as KycGroup).fields;
-    }
-  }));
+  List<KycField> get allFields => kycSteps.expand((KycStep step) => step.allFields);
 
   Program({this.programId,
   this.programName,
@@ -1051,6 +1045,14 @@ class KycStep {
   final List<KycEntry> entries;
 
   KycStep({this.title, this.entries});
+
+  List<KycField> get allFields => entries.expand((entry) {
+    if (entry is KycField) {
+      return [entry];
+    } else {
+      return (entry as KycGroup).fields;
+    }
+  });
 
   factory KycStep.fromJson(Map<String, dynamic> json) => _$KycStepFromJson(json);
 
@@ -1117,7 +1119,7 @@ enum KycDataType {
   BOOL,
   DATE,
   FLOAT,
-  INT,
+  INTEGER,
   STRING,
 }
 
@@ -1160,10 +1162,15 @@ class KycField extends KycEntry {
   Map<String, dynamic> toJson() => _$KycFieldToJson(this);
 }
 
+enum GroupType {
+  ADDRESS, UNKNOWN
+}
+
 @JsonSerializable(nullable: false)
 class KycGroup extends KycEntry {
-  final String groupType;
-  final List<KycField> fields;
+  @JsonKey(unknownEnumValue: GroupType.UNKNOWN)
+  final GroupType groupType;
+  final Map<KycFieldType, KycField> fields;
 
   KycGroup({
     KycEntryType entryType,

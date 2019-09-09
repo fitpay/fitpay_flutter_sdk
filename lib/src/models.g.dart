@@ -994,13 +994,13 @@ const _$KycDataTypeEnumMap = <KycDataType, dynamic>{
   KycDataType.BOOL: 'BOOL',
   KycDataType.DATE: 'DATE',
   KycDataType.FLOAT: 'FLOAT',
-  KycDataType.INT: 'INT',
+  KycDataType.INTEGER: 'INTEGER',
   KycDataType.STRING: 'STRING'
 };
 
 KycGroup _$KycGroupFromJson(Map<String, dynamic> json) {
   return KycGroup(
-    groupType: json['groupType'] as String,
+    groupType: _$enumDecode(_$GroupTypeEnumMap, json['groupType']),
     fields: (json['fields'] as List)
         .map((e) => KycField.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -1008,9 +1008,14 @@ KycGroup _$KycGroupFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$KycGroupToJson(KycGroup instance) => <String, dynamic>{
-      'groupType': instance.groupType,
+      'groupType': _$GroupTypeEnumMap[instance.groupType],
       'fields': instance.fields,
     };
+
+const _$GroupTypeEnumMap = <GroupType, dynamic>{
+  GroupType.ADDRESS: 'ADDRESS',
+  GroupType.UNKNOWN: 'UNKNOWN'
+};
 
 PaymentDeviceInformation _$PaymentDeviceInformationFromJson(
     Map<String, dynamic> json) {

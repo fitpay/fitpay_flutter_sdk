@@ -1048,14 +1048,18 @@ class API {
   Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
     return _httpClient.get(uri, headers: await _headers()).then((response) {
       final values = Application.fromJson(jsonDecode(response.body)).values;
-      program.allFields.forEach((field) => field.value = values[field.id]);
+      program.allFields.forEach((field) {
+        if (values.containsKey(field.id)) {
+          field.value = values[field.id];
+        }
+      });
     });
   }
 
-  Future<void> patchApplication(Uri uri, {@required Program program}) async {
+  Future<void> patchApplication({@required Uri applicationUri, @required Program program}) async {
     List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field));
 
-    final resp = await _httpClient.patch(uri, headers: await _headers(), body: jsonEncode(patchBody));
+    final resp = await _httpClient.patch(applicationUri, headers: await _headers(), body: jsonEncode(patchBody));
 
     if (resp.statusCode != 200) throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
   }
