@@ -1036,7 +1036,7 @@ class API {
     throw response.statusCode;
   }
 
-  Future<Program> getProgramWithKycValues({Uri programUri, Uri applicationUri}) async {
+  Future<Program> getProgramWithKycValues({@required Uri programUri, @required Uri applicationUri}) async {
     Program program = Program.fromJson(
       jsonDecode(
         (await _httpClient.get(programUri, headers: await _headers()))

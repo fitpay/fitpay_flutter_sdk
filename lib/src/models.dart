@@ -1145,17 +1145,70 @@ class KycField extends KycEntry {
   final bool obscured;
   final String regex;
   @JsonKey(ignore: true)
-  dynamic value;
+  dynamic _value;
   
   KycField({
     KycEntryType entryType,
+    dynamic value,
     this.id,
     this.fieldType,
     this.dataType,
     this.obscured,
     this.regex = ".*"
-  })
-    : super(type: entryType);
+  }) : _value = value,
+    super(type: entryType);
+
+  static jsonDeserializeValue({dynamic value, KycDataType dataType}) {
+    return value.toString();
+  }
+
+  dynamic get value => _value;
+
+  set value(dynamic newValue) {
+    switch (dataType) {
+      case KycDataType.BOOL:
+          if (newValue is bool) {
+            _value = newValue;
+            return;
+          } else if (newValue is String) {
+            _value = newValue.toLowerCase() == 'true';
+            return;
+          } 
+        break;
+      case KycDataType.DATE:
+          if (newValue is DateTime) {
+            _value = DateTime;
+            return;
+          } else if (newValue is String) {
+            _value = DateTime.parse(newValue);
+            return;
+          }
+          break;
+      case KycDataType.FLOAT:
+          if (newValue is double) {
+            _value = newValue;
+            return;
+          } else if (newValue is String) {
+            _value = double.parse(newValue);
+            return;
+          }
+          break;
+      case KycDataType.INTEGER:
+          if (newValue is int) {
+            _value = newValue;
+            return;
+          } else if (newValue is String) {
+            _value = int.parse(newValue);
+            return;
+          }
+          break;
+      case KycDataType.STRING:
+          _value = newValue.toString;
+          return;
+    }
+
+    throw 'ERROR: Setting KycField.value with invalid data type';
+  }
 
   factory KycField.fromJson(Map<String, dynamic> json) => _$KycFieldFromJson(json);
 
