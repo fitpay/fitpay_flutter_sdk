@@ -690,7 +690,7 @@ GPRAccount _$GPRAccountFromJson(Map<String, dynamic> json) {
     createdTsEpoch: json['createdTsEpoch'] as String,
     lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as String,
     accountType:
-        _$enumDecodeNullable(_$GprAccountTypeEnumMap, json['accountType']),
+        _$enumDecodeNullable(_$GprAccountTypeEnumMap, json['programType']),
     links: (json['_links'] as Map<String, dynamic>).map(
       (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
     ),
@@ -714,7 +714,7 @@ Map<String, dynamic> _$GPRAccountToJson(GPRAccount instance) =>
       'errors': instance.errors,
       'createdTsEpoch': instance.createdTsEpoch,
       'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
-      'accountType': _$GprAccountTypeEnumMap[instance.accountType],
+      'programType': _$GprAccountTypeEnumMap[instance.accountType],
     };
 
 const _$GprAccountTypeEnumMap = <GprAccountType, dynamic>{
