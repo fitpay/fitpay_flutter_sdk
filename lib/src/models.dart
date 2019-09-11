@@ -823,6 +823,7 @@ class GPRAccount extends BaseResource {
   final List<String> errors;
   final String createdTsEpoch;
   final String lastModifiedTsEpoch;
+  @JsonKey(name: 'programType')
   final GprAccountType accountType;
 
   GPRAccount(
