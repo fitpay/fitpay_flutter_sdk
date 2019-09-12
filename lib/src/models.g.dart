@@ -935,11 +935,8 @@ Application _$ApplicationFromJson(Map<String, dynamic> json) {
     dateSubmitedTs: json['dateSubmitedTs'] as String,
     dateCreatedTs: json['dateCreatedTs'] as String,
     lastModifiedTs: json['lastModifiedTs'] as String,
-    kycSteps: (json['kycSteps'] as List)
-        ?.map((e) => e == null
-            ? null
-            : ApplicationSteps.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    kycSteps:
+        Application._kycStepsFromJson(json['kycSteps'] as Map<String, dynamic>),
     dateSubmitedTsEpoch: json['dateSubmitedTsEpoch'] as int,
     dateCreatedTsEpoch: json['dateCreatedTsEpoch'] as int,
     lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as int,
@@ -961,7 +958,7 @@ Map<String, dynamic> _$ApplicationToJson(Application instance) =>
       'dateSubmitedTs': instance.dateSubmitedTs,
       'dateCreatedTs': instance.dateCreatedTs,
       'lastModifiedTs': instance.lastModifiedTs,
-      'kycSteps': instance.kycSteps,
+      'kycSteps': Application._kycStepsToJson(instance.kycSteps),
       'dateSubmitedTsEpoch': instance.dateSubmitedTsEpoch,
       'dateCreatedTsEpoch': instance.dateCreatedTsEpoch,
       'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,

@@ -1023,6 +1023,9 @@ class Application extends BaseResource {
   final String dateSubmitedTs;
   final String dateCreatedTs;
   final String lastModifiedTs;
+  @JsonKey(
+    fromJson: _kycStepsFromJson,
+    toJson: _kycStepsToJson)
   final List<ApplicationSteps> kycSteps;
   final int dateSubmitedTsEpoch;
   final int dateCreatedTsEpoch;
@@ -1044,6 +1047,14 @@ class Application extends BaseResource {
       this.lastModifiedTsEpoch,
       Map<String, Link> links})
       : super(links: links);
+
+  static List<ApplicationSteps> _kycStepsFromJson(Map<String, dynamic> json) {
+    return json.values.toList().map((json) => ApplicationSteps.fromJson(json)).toList();
+  }
+
+  static Map<String, ApplicationSteps> _kycStepsToJson(List<ApplicationSteps> steps) {
+    return Map.fromIterable(steps.map((step) => MapEntry(step.type, step)));
+  }
 
   factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
 
