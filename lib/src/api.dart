@@ -1046,13 +1046,12 @@ class API {
   }
 
   Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
-    return _httpClient.get(uri, headers: await _headers()).then((response) {
-      final values = Application.fromJson(jsonDecode(response.body)).values;
-      program.allFields.forEach((field) {
-        if (values.containsKey(field.id)) {
-          field.value = values[field.id];
-        }
-      });
+    final response = await _httpClient.get(uri, headers: await _headers());
+    final values = Application.fromJson(jsonDecode(response.body)).values;
+    program.allFields.forEach((field) {
+      if (values.containsKey(field.id)) {
+        field.value = values[field.id];
+      }
     });
   }
 
