@@ -11,6 +11,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_transaction.dart';
 import 'package:fitpay_flutter_sdk/src/mock_funding_source.dart';
 import 'package:http_retry/http_retry.dart';
+import 'package:fitpay_flutter_sdk/src/mock_kyc.dart';
 
 class API {
   AccessToken _accessToken;
@@ -1037,10 +1038,10 @@ class API {
   }
 
   Future<Program> getProgramWithKycValues({@required Uri programUri, @required Uri applicationUri}) async {
-    Program program = Program.fromJson(
-      jsonDecode(
-        (await _httpClient.get(programUri, headers: await _headers()))
-        .body));
+     Program program = Program.fromJson(
+       jsonDecode(
+         (await _httpClient.get(programUri, headers: await _headers()))
+         .body));
     await updateKycFieldsWithValues(applicationUri, program);
     return program;
   }
@@ -1049,18 +1050,22 @@ class API {
     final response = await _httpClient.get(uri, headers: await _headers());
     final values = Application.fromJson(jsonDecode(response.body)).values;
     program.allFields.forEach((field) {
-      if (values.containsKey(field.id)) {
-        field.value = values[field.id];
+      if (values.containsKey(field.fieldId) && values[field.fieldId]['value'] != null) {
+        field.value = values[field.fieldId]['value'];
       }
     });
   }
 
   Future<void> patchApplication({@required Uri applicationUri, @required Program program}) async {
-    List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field));
+    List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field)).toList();
 
     final resp = await _httpClient.patch(applicationUri, headers: await _headers(), body: jsonEncode(patchBody));
 
-    if (resp.statusCode != 200) throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
+    if (resp.statusCode == 200) {
+      print("Application patch response: ${resp.body}");
+    } else {
+      throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
+    }
   }
 
   Future<Application> submitApplication(Uri uri) async {

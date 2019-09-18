@@ -201,30 +201,42 @@ Map<String, dynamic> _$ApduExecutionResultToJson(
       'errorCode': instance.errorCode,
     };
 
-T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     throw ArgumentError('A value must be provided. Supported values: '
         '${enumValues.values.join(', ')}');
   }
-  return enumValues.entries
-      .singleWhere((e) => e.value == source,
-          orElse: () => throw ArgumentError(
-              '`$source` is not one of the supported values: '
-              '${enumValues.values.join(', ')}'))
-      .key;
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
 }
 
-T _$enumDecodeNullable<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecodeNullable<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source);
+  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
 }
 
-const _$ApduExecutionResultStateEnumMap = <ApduExecutionResultState, dynamic>{
+const _$ApduExecutionResultStateEnumMap = {
   ApduExecutionResultState.processed: 'PROCESSED',
   ApduExecutionResultState.failed: 'FAILED',
-  ApduExecutionResultState.notProcessed: 'NOT_PROCESSED'
+  ApduExecutionResultState.notProcessed: 'NOT_PROCESSED',
 };
 
 VerificationMethods _$VerificationMethodsFromJson(Map<String, dynamic> json) {
@@ -294,9 +306,9 @@ Map<String, dynamic> _$CreditCardToJson(CreditCard instance) =>
       'offlineSeActions': instance.offlineSeActions,
     };
 
-const _$CausedByEnumMap = <CausedBy, dynamic>{
+const _$CausedByEnumMap = {
   CausedBy.cardHolder: 'CARDHOLDER',
-  CausedBy.issuer: 'ISSUER'
+  CausedBy.issuer: 'ISSUER',
 };
 
 AppToAppContext _$AppToAppContextFromJson(Map<String, dynamic> json) {
@@ -361,7 +373,7 @@ Map<String, dynamic> _$VerificationMethodSubmitErrorToJson(
       'details': _$VerificationMethodReasonEnumMap[instance.reason],
     };
 
-const _$VerificationMethodReasonEnumMap = <VerificationMethodReason, dynamic>{
+const _$VerificationMethodReasonEnumMap = {
   VerificationMethodReason.incorrectCode: 'INCORRECT_CODE',
   VerificationMethodReason.incorrectCodeRetriesExceed:
       'INCORRECT_CODE_RETRIES_EXCEEDED',
@@ -369,7 +381,7 @@ const _$VerificationMethodReasonEnumMap = <VerificationMethodReason, dynamic>{
   VerificationMethodReason.incorrectTav: 'INCORRECT_TAV',
   VerificationMethodReason.expiredSession: 'EXPIRED_SESSION',
   VerificationMethodReason.genericError: 'GENERIC_ERROR',
-  VerificationMethodReason.notAvailable: 'NOT_AVAILABLE'
+  VerificationMethodReason.notAvailable: 'NOT_AVAILABLE',
 };
 
 CardMetaData _$CardMetaDataFromJson(Map<String, dynamic> json) {
@@ -454,10 +466,10 @@ Map<String, dynamic> _$SecureElementToJson(SecureElement instance) =>
       'manufacturer': _$SecureElementManufacturerEnumMap[instance.manufacturer],
     };
 
-const _$SecureElementManufacturerEnumMap = <SecureElementManufacturer, dynamic>{
+const _$SecureElementManufacturerEnumMap = {
   SecureElementManufacturer.st: 'ST',
   SecureElementManufacturer.nxp: 'NXP',
-  SecureElementManufacturer.infineon: 'INFINEON'
+  SecureElementManufacturer.infineon: 'INFINEON',
 };
 
 Device _$DeviceFromJson(Map<String, dynamic> json) {
@@ -506,17 +518,17 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'secureElement': instance.secureElement,
     };
 
-const _$DeviceTypeEnumMap = <DeviceType, dynamic>{
+const _$DeviceTypeEnumMap = {
   DeviceType.ACTIVITY_TRACKER: 'ACTIVITY_TRACKER',
   DeviceType.WATCH: 'WATCH',
   DeviceType.MOCK: 'MOCK',
-  DeviceType.PHONE: 'PHONE'
+  DeviceType.PHONE: 'PHONE',
 };
 
-const _$DeviceStateEnumMap = <DeviceState, dynamic>{
+const _$DeviceStateEnumMap = {
   DeviceState.INITIALIZING: 'INITIALIZING',
   DeviceState.INITIALIZED: 'INITIALIZED',
-  DeviceState.FAILED_INITIALIZATION: 'FAILED_INITIALIZATION'
+  DeviceState.FAILED_INITIALIZATION: 'FAILED_INITIALIZATION',
 };
 
 DecryptedTransaction _$DecryptedTransactionFromJson(Map<String, dynamic> json) {
@@ -591,10 +603,10 @@ Map<String, dynamic> _$CommitResponseToJson(CommitResponse instance) =>
       'result': _$CommitResultEnumMap[instance.result],
     };
 
-const _$CommitResultEnumMap = <CommitResult, dynamic>{
+const _$CommitResultEnumMap = {
   CommitResult.SUCCESS: 'SUCCESS',
   CommitResult.FAILED: 'FAILED',
-  CommitResult.SKIPPED: 'SKIPPED'
+  CommitResult.SKIPPED: 'SKIPPED',
 };
 
 ApiError _$ApiErrorFromJson(Map<String, dynamic> json) {
@@ -690,7 +702,7 @@ GPRAccount _$GPRAccountFromJson(Map<String, dynamic> json) {
     createdTsEpoch: json['createdTsEpoch'] as String,
     lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as String,
     accountType:
-        _$enumDecodeNullable(_$GprAccountTypeEnumMap, json['accountType']),
+        _$enumDecodeNullable(_$GprAccountTypeEnumMap, json['programType']),
     links: (json['_links'] as Map<String, dynamic>).map(
       (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
     ),
@@ -714,13 +726,13 @@ Map<String, dynamic> _$GPRAccountToJson(GPRAccount instance) =>
       'errors': instance.errors,
       'createdTsEpoch': instance.createdTsEpoch,
       'lastModifiedTsEpoch': instance.lastModifiedTsEpoch,
-      'accountType': _$GprAccountTypeEnumMap[instance.accountType],
+      'programType': _$GprAccountTypeEnumMap[instance.accountType],
     };
 
-const _$GprAccountTypeEnumMap = <GprAccountType, dynamic>{
+const _$GprAccountTypeEnumMap = {
   GprAccountType.GPR: 'GPR',
   GprAccountType.PREPAID: 'PREPAID',
-  GprAccountType.HYBRID: 'HYBRID'
+  GprAccountType.HYBRID: 'HYBRID',
 };
 
 FCMEvent _$FCMEventFromJson(Map<String, dynamic> json) {
@@ -817,9 +829,9 @@ Map<String, dynamic> _$FundingSourceToJson(FundingSource instance) =>
       'accountId': instance.accountId,
     };
 
-const _$FundingTypeEnumMap = <FundingType, dynamic>{
+const _$FundingTypeEnumMap = {
   FundingType.topUp: 'TOPUP',
-  FundingType.ach: 'ACH'
+  FundingType.ach: 'ACH',
 };
 
 Funding _$FundingFromJson(Map<String, dynamic> json) {
@@ -860,10 +872,10 @@ Map<String, dynamic> _$FundingToJson(Funding instance) => <String, dynamic>{
       'fundingType': _$FundingTypeEnumMap[instance.fundingType],
     };
 
-const _$FundingStateEnumMap = <FundingState, dynamic>{
+const _$FundingStateEnumMap = {
   FundingState.ACTIVE: 'ACTIVE',
   FundingState.STOPPED: 'STOPPED',
-  FundingState.ERROR: 'ERROR'
+  FundingState.ERROR: 'ERROR',
 };
 
 Program _$ProgramFromJson(Map<String, dynamic> json) {
@@ -872,8 +884,8 @@ Program _$ProgramFromJson(Map<String, dynamic> json) {
     programName: json['programName'] as String,
     programType:
         _$enumDecodeNullable(_$ProgramTypeEnumMap, json['programType']),
-    createdTsEpoch: json['createdTsEpoch'] as String,
-    lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as String,
+    createdTsEpoch: json['createdTsEpoch'] as int,
+    lastModifiedTsEpoch: json['lastModifiedTsEpoch'] as int,
     kycSteps: (json['kycSteps'] as List)
         ?.map((e) =>
             e == null ? null : KycStep.fromJson(e as Map<String, dynamic>))
@@ -890,10 +902,10 @@ Map<String, dynamic> _$ProgramToJson(Program instance) => <String, dynamic>{
       'kycSteps': instance.kycSteps,
     };
 
-const _$ProgramTypeEnumMap = <ProgramType, dynamic>{
+const _$ProgramTypeEnumMap = {
   ProgramType.GPR: 'GPR',
   ProgramType.PREPAID: 'PREPAID',
-  ProgramType.FLIP: 'FLIP'
+  ProgramType.FLIP: 'FLIP',
 };
 
 KycStep _$KycStepFromJson(Map<String, dynamic> json) {
@@ -924,17 +936,15 @@ Map<String, dynamic> _$JsonPatchToJson(JsonPatch instance) => <String, dynamic>{
       'value': instance.value,
     };
 
-const _$JsonPatchOpEnumMap = <JsonPatchOp, dynamic>{
+const _$JsonPatchOpEnumMap = {
   JsonPatchOp.add: 'add',
   JsonPatchOp.remove: 'remove',
-  JsonPatchOp.replace: 'replace'
+  JsonPatchOp.replace: 'replace',
 };
 
 Application _$ApplicationFromJson(Map<String, dynamic> json) {
   return Application(
-    values: (json['values'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(k, e as String),
-    ),
+    values: json['values'] as Map<String, dynamic>,
   );
 }
 
@@ -943,40 +953,38 @@ Map<String, dynamic> _$ApplicationToJson(Application instance) =>
       'values': instance.values,
     };
 
-KycEntry _$KycEntryFromJson(Map<String, dynamic> json) {
-  return KycEntry(
-    type: _$enumDecode(_$KycEntryTypeEnumMap, json['type']),
-  );
-}
-
 Map<String, dynamic> _$KycEntryToJson(KycEntry instance) => <String, dynamic>{
       'type': _$KycEntryTypeEnumMap[instance.type],
     };
 
-const _$KycEntryTypeEnumMap = <KycEntryType, dynamic>{
+const _$KycEntryTypeEnumMap = {
   KycEntryType.GROUP: 'GROUP',
-  KycEntryType.FIELD: 'FIELD'
+  KycEntryType.FIELD: 'FIELD',
 };
 
 KycField _$KycFieldFromJson(Map<String, dynamic> json) {
   return KycField(
-    id: json['id'] as String,
+    value: json['value'],
+    fieldId: json['fieldId'] as String,
     fieldType: _$enumDecodeNullable(_$KycFieldTypeEnumMap, json['fieldType']),
     dataType: _$enumDecodeNullable(_$KycDataTypeEnumMap, json['dataType']),
     obscured: json['obscured'] as bool,
     regex: json['regex'] as String,
+    displayName: json['displayName'] as String,
   );
 }
 
 Map<String, dynamic> _$KycFieldToJson(KycField instance) => <String, dynamic>{
-      'id': instance.id,
+      'fieldId': instance.fieldId,
       'fieldType': _$KycFieldTypeEnumMap[instance.fieldType],
       'dataType': _$KycDataTypeEnumMap[instance.dataType],
       'obscured': instance.obscured,
       'regex': instance.regex,
+      'displayName': instance.displayName,
+      'value': instance.value,
     };
 
-const _$KycFieldTypeEnumMap = <KycFieldType, dynamic>{
+const _$KycFieldTypeEnumMap = {
   KycFieldType.PHONE_NUMBER: 'PHONE_NUMBER',
   KycFieldType.SOCIAL_SECURITY: 'SOCIAL_SECURITY',
   KycFieldType.EMAIL: 'EMAIL',
@@ -987,34 +995,46 @@ const _$KycFieldTypeEnumMap = <KycFieldType, dynamic>{
   KycFieldType.STATE: 'STATE',
   KycFieldType.DATE_OF_BIRTH: 'DATE_OF_BIRTH',
   KycFieldType.FIRST_NAME: 'FIRST_NAME',
-  KycFieldType.LAST_NAME: 'LAST_NAME'
+  KycFieldType.LAST_NAME: 'LAST_NAME',
 };
 
-const _$KycDataTypeEnumMap = <KycDataType, dynamic>{
+const _$KycDataTypeEnumMap = {
   KycDataType.BOOL: 'BOOL',
   KycDataType.DATE: 'DATE',
   KycDataType.FLOAT: 'FLOAT',
   KycDataType.INTEGER: 'INTEGER',
-  KycDataType.STRING: 'STRING'
+  KycDataType.STRING: 'STRING',
 };
 
 KycGroup _$KycGroupFromJson(Map<String, dynamic> json) {
   return KycGroup(
-    groupType: _$enumDecode(_$GroupTypeEnumMap, json['groupType']),
-    fields: (json['fields'] as List)
-        .map((e) => KycField.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    groupType: _$enumDecodeNullable(_$GroupTypeEnumMap, json['groupType'],
+        unknownValue: GroupType.UNKNOWN),
+    fields: (json['fields'] as Map<String, dynamic>).map(
+      (k, e) => MapEntry(_$enumDecode(_$KycFieldTypeEnumMap, k),
+          KycField.fromJson(e as Map<String, dynamic>)),
+    ),
   );
 }
 
-Map<String, dynamic> _$KycGroupToJson(KycGroup instance) => <String, dynamic>{
-      'groupType': _$GroupTypeEnumMap[instance.groupType],
-      'fields': instance.fields,
-    };
+Map<String, dynamic> _$KycGroupToJson(KycGroup instance) {
+  final val = <String, dynamic>{};
 
-const _$GroupTypeEnumMap = <GroupType, dynamic>{
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('groupType', _$GroupTypeEnumMap[instance.groupType]);
+  val['fields'] =
+      instance.fields.map((k, e) => MapEntry(_$KycFieldTypeEnumMap[k], e));
+  return val;
+}
+
+const _$GroupTypeEnumMap = {
   GroupType.ADDRESS: 'ADDRESS',
-  GroupType.UNKNOWN: 'UNKNOWN'
+  GroupType.UNKNOWN: 'UNKNOWN',
 };
 
 PaymentDeviceInformation _$PaymentDeviceInformationFromJson(

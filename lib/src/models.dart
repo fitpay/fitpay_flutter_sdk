@@ -1022,11 +1022,13 @@ class Program extends BaseResource {
   final String programId;
   final String programName;
   final ProgramType programType;
-  final String createdTsEpoch;
-  final String lastModifiedTsEpoch;
+  final int createdTsEpoch;
+  final int lastModifiedTsEpoch;
   final List<KycStep> kycSteps;
 
-  List<KycField> get allFields => kycSteps.expand((KycStep step) => step.allFields);
+  List<KycField> get allFields => kycSteps.expand((KycStep step) => step.allFields).toList();
+
+  List<String> get stepTitles => kycSteps.map((KycStep step) => step.title).toList();
 
   Program({this.programId,
   this.programName,
@@ -1051,9 +1053,9 @@ class KycStep {
     if (entry is KycField) {
       return [entry];
     } else {
-      return (entry as KycGroup).fields;
+      return (entry as KycGroup).fields.values;
     }
-  });
+  }).toList();
 
   factory KycStep.fromJson(Map<String, dynamic> json) => _$KycStepFromJson(json);
 
@@ -1076,7 +1078,7 @@ class JsonPatch {
 
   factory JsonPatch.fromKycField(KycField field) => JsonPatch(
     op: JsonPatchOp.replace,
-    path: "/${field.id}",
+    path: "/${field.fieldId}",
     value: field.value.toString()
   );
 
@@ -1085,7 +1087,7 @@ class JsonPatch {
 
 @JsonSerializable(nullable: true)
 class Application extends BaseResource {
-  final Map<String, String> values;
+  final Map<String, dynamic> values;
 
   Application({this.values});
 
@@ -1099,14 +1101,14 @@ enum KycEntryType {
   FIELD
 }
 
-@JsonSerializable(nullable: false)
+@JsonSerializable(createFactory: false)
 abstract class KycEntry {
   final KycEntryType type;
 
   KycEntry({this.type});
 
   factory KycEntry.fromJson(Map<String, dynamic> json) {
-    final type = _$KycEntryTypeEnumMap[json["entryType"]];
+    final type = _$enumDecode(_$KycEntryTypeEnumMap, json["type"]);
     if (type == KycEntryType.FIELD) {
       return KycField.fromJson(json);
     }
@@ -1140,22 +1142,24 @@ enum KycFieldType {
 
 @JsonSerializable(nullable: true)
 class KycField extends KycEntry {
-  final String id;
+  final String fieldId;
   final KycFieldType fieldType;
   final KycDataType dataType;
   final bool obscured;
   final String regex;
+  final String displayName;
   @JsonKey(ignore: true)
   dynamic _value;
   
   KycField({
     KycEntryType entryType,
     dynamic value,
-    this.id,
+    this.fieldId,
     this.fieldType,
     this.dataType,
     this.obscured,
-    this.regex = ".*"
+    this.regex = ".*",
+    this.displayName
   }) : _value = value,
     super(type: entryType);
 
@@ -1178,7 +1182,7 @@ class KycField extends KycEntry {
         break;
       case KycDataType.DATE:
           if (newValue is DateTime) {
-            _value = DateTime;
+            _value = newValue;
             return;
           } else if (newValue is String) {
             _value = DateTime.parse(newValue);
@@ -1204,7 +1208,7 @@ class KycField extends KycEntry {
           }
           break;
       case KycDataType.STRING:
-          _value = newValue.toString;
+          _value = newValue.toString();
           return;
     }
 
@@ -1222,13 +1226,17 @@ enum GroupType {
 
 @JsonSerializable(nullable: false)
 class KycGroup extends KycEntry {
+  @JsonKey(
+  unknownEnumValue: GroupType.UNKNOWN,
+  includeIfNull: false,
+  nullable: true
+  )
   final GroupType groupType;
-  @JsonKey(unknownEnumValue: GroupType.UNKNOWN)
   final Map<KycFieldType, KycField> fields;
 
   KycGroup({
     KycEntryType entryType,
-    this.groupType,
+    this.groupType = GroupType.UNKNOWN,
     this.fields
   }): super(type: entryType);
 
