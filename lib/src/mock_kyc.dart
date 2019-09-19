@@ -1,0 +1,172 @@
+const String MOCK_PROGRAM_JSON = """{
+  "_links":{
+    "self":{
+      "href":"http://localhost:63680/27498d4c-0ed4-4a6e-a480-97019b4808b1"
+    }
+  },
+  "programId":"27498d4c-0ed4-4a6e-a480-97019b4808b1",
+  "programName":"Cascade",
+  "programType":"GPR",
+  "stepCount":0,
+  "createdTsEpoch":1568916104300,
+  "lastModifiedTsEpoch":1568916104300,
+  "kycSteps":[
+    {
+      "title":"Identity",
+      "entries":[
+        {
+          "type":"FIELD",
+          "displayName":"Social security number",
+          "fieldId":"6",
+          "stepId":"IDENTITY",
+          "fieldType":"SOCIAL_SECURITY",
+          "obscured":true,
+          "dataType":"INTEGER",
+          "regex":"\\\\d{9}"
+        },
+        {
+          "type":"FIELD",
+          "displayName":"Date of birth",
+          "fieldId":"7",
+          "stepId":"IDENTITY",
+          "fieldType":"DATE_OF_BIRTH",
+          "obscured":false,
+          "dataType":"DATE"
+        },
+        {
+          "type":"FIELD",
+          "fieldId":"8",
+          "displayName":"Email address",
+          "stepId":"IDENTITY",
+          "fieldType":"EMAIL",
+          "obscured":false,
+          "dataType":"STRING",
+          "regex":".*"
+        },
+        {
+          "type":"FIELD",
+          "fieldId":"9",
+          "displayName":"Phone number",
+          "stepId":"IDENTITY",
+          "fieldType":"PHONE_NUMBER",
+          "obscured":false,
+          "dataType":"STRING",
+          "regex":".*"
+        },
+        {
+          "type":"FIELD",
+          "fieldId":"10",
+          "displayName":"First name",
+          "stepId":"IDENTITY",
+          "fieldType":"FIRST_NAME",
+          "obscured":false,
+          "dataType":"STRING"
+        },
+        {
+          "type":"FIELD",
+          "fieldId":"11",
+          "displayName":"Last name",
+          "stepId":"IDENTITY",
+          "fieldType":"LAST_NAME",
+          "obscured":false,
+          "dataType":"STRING"
+        }
+      ]
+    },
+    {
+      "title":"Address",
+      "entries":[
+        {
+          "type":"GROUP",
+          "fields":{
+            "COUNTRY":{
+              "type":"FIELD",
+              "displayName":"Country",
+              "fieldId":"4",
+              "groupId":"PERSONAL_ADDRESS",
+              "stepId":"ADDRESS",
+              "fieldType":"COUNTRY",
+              "obscured":false,
+              "dataType":"STRING"
+            },
+            "STREET":{
+              "type":"FIELD",
+              "displayName":"City",
+              "fieldId":"1",
+              "groupId":"PERSONAL_ADDRESS",
+              "stepId":"ADDRESS",
+              "fieldType":"STREET",
+              "obscured":false,
+              "dataType":"STRING"
+            },
+            "STATE":{
+              "type":"FIELD",
+              "displayName":"State",
+              "fieldId":"3",
+              "groupId":"PERSONAL_ADDRESS",
+              "stepId":"ADDRESS",
+              "fieldType":"STATE",
+              "obscured":false,
+              "dataType":"STRING"
+            },
+            "CITY":{
+              "type":"FIELD",
+              "displayName":"City",
+              "fieldId":"2",
+              "groupId":"PERSONAL_ADDRESS",
+              "stepId":"ADDRESS",
+              "fieldType":"CITY",
+              "obscured":false,
+              "dataType":"STRING"
+            },
+            "ZIP":{
+              "type":"FIELD",
+              "displayName":"ZIP",
+              "fieldId":"5",
+              "groupId":"PERSONAL_ADDRESS",
+              "stepId":"ADDRESS",
+              "fieldType":"ZIP",
+              "obscured":false,
+              "dataType":"INTEGER"
+            }
+          },
+          "id":"PERSONAL_ADDRESS"
+        }
+      ]
+    }
+  ]
+}""";
+
+const String MOCK_APPLICATION_JSON = """{
+  "_links":{
+    "self":{
+      "href":"http://localhost:63680/applications/568f2a1d-dffe-4477-b759-ae09c84c398f"
+    },
+    "program":{
+      "href":"http://localhost:63680/27498d4c-0ed4-4a6e-a480-97019b4808b1"
+    },
+    "account":{
+      "href":"http://localhost:63680/accounts/b34b2bbb-538d-4941-9104-758b0c5bff3c"
+    },
+    "submit":{
+      "href":"http://localhost:63680/applications/568f2a1d-dffe-4477-b759-ae09c84c398f/submit"
+    }
+  },
+  "applicationId":"568f2a1d-dffe-4477-b759-ae09c84c398f",
+  "accountId":"b34b2bbb-538d-4941-9104-758b0c5bff3c",
+  "programId":"27498d4c-0ed4-4a6e-a480-97019b4808b1",
+  "applicationState":"NEW",
+  "values":{
+    "1":"addr 1",
+    "2":"city 1",
+    "3":"state 1",
+    "4":"country 1",
+    "5":12345,
+    "6":123456789,
+    "7":"2312-12-31 00:00:00.000",
+    "8":"test@mail.com",
+    "9":"123123123",
+    "10":"first",
+    "11":"last"
+  }
+}""";

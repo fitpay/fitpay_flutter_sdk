@@ -1038,22 +1038,15 @@ class API {
   }
 
   Future<Program> getProgramWithKycValues({@required Uri programUri, @required Uri applicationUri}) async {
-     Program program = Program.fromJson(
-       jsonDecode(
-         (await _httpClient.get(programUri, headers: await _headers()))
-         .body));
+    Program program = Program.fromJson(jsonDecode(MOCK_PROGRAM_JSON));
     await updateKycFieldsWithValues(applicationUri, program);
     return program;
   }
 
   Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
     final response = await _httpClient.get(uri, headers: await _headers());
-    final values = Application.fromJson(jsonDecode(response.body)).values;
-    program.allFields.forEach((field) {
-      if (values.containsKey(field.fieldId) && values[field.fieldId]['value'] != null) {
-        field.value = values[field.fieldId]['value'];
-      }
-    });
+    final values = Application.fromJson(jsonDecode(MOCK_APPLICATION_JSON)).values;
+    program.allFields.forEach((field) => field.value = values[field.fieldId]);
   }
 
   Future<void> patchApplication({@required Uri applicationUri, @required Program program}) async {
