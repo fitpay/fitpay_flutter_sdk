@@ -1050,12 +1050,12 @@ class API {
   }
 
   Future<void> patchApplication({@required Uri applicationUri, @required Program program}) async {
-    List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field)).toList();
-
-    final resp = await _httpClient.patch(applicationUri, headers: await _headers(), body: jsonEncode(patchBody));
+    String patchBody = jsonEncode(program.allFields.map((field) => JsonPatch.fromKycField(field)).toList());
+    print("Application patch body:\n${patchBody}");
+    final resp = await _httpClient.patch(applicationUri, headers: await _headers(), body: patchBody);
 
     if (resp.statusCode == 200) {
-      print("Application patch response: ${resp.body}");
+      print("Application patch response:\n${resp.body}");
     } else {
       throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
     }

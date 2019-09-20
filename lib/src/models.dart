@@ -1170,6 +1170,10 @@ class KycField extends KycEntry {
   dynamic get value => _value;
 
   set value(dynamic newValue) {
+    if (newValue == null) {
+      _value = null;
+      return;
+    }
     switch (dataType) {
       case KycDataType.BOOL:
           if (newValue is bool) {
