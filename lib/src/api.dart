@@ -1038,12 +1038,13 @@ class API {
   }
 
   Future<Program> getProgramWithKycValues({@required Uri programUri, @required Uri applicationUri}) async {
-     Program program = Program.fromJson(
-       jsonDecode(
-         (await _httpClient.get(programUri, headers: await _headers()))
-         .body));
-    await updateKycFieldsWithValues(applicationUri, program);
-    return program;
+    final response = await _httpClient.get(programUri, headers: await _headers());
+    if (response.statusCode == 200) {
+      Program program = Program.fromJson(jsonDecode(response.body));
+      await updateKycFieldsWithValues(applicationUri, program);
+      return program;
+    }
+    throw response.statusCode;
   }
 
   Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
