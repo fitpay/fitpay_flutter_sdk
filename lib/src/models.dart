@@ -1147,7 +1147,7 @@ class KycField extends KycEntry {
   final KycDataType dataType;
   final bool obscured;
   final String regex;
-  final String displayName;
+  final String title;
   @JsonKey(ignore: true)
   dynamic _value;
   
@@ -1159,7 +1159,7 @@ class KycField extends KycEntry {
     this.dataType,
     this.obscured,
     this.regex = ".*",
-    this.displayName
+    this.title
   }) : _value = value,
     super(type: entryType);
 

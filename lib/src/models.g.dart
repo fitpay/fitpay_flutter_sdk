@@ -970,7 +970,7 @@ KycField _$KycFieldFromJson(Map<String, dynamic> json) {
     dataType: _$enumDecodeNullable(_$KycDataTypeEnumMap, json['dataType']),
     obscured: json['obscured'] as bool,
     regex: json['regex'] as String,
-    displayName: json['displayName'] as String,
+    title: json['title'] as String,
   );
 }
 
@@ -980,7 +980,7 @@ Map<String, dynamic> _$KycFieldToJson(KycField instance) => <String, dynamic>{
       'dataType': _$KycDataTypeEnumMap[instance.dataType],
       'obscured': instance.obscured,
       'regex': instance.regex,
-      'displayName': instance.displayName,
+      'title': instance.title,
       'value': instance.value,
     };
 
