@@ -11,6 +11,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:fitpay_flutter_sdk/src/mock_gpr_transaction.dart';
 import 'package:fitpay_flutter_sdk/src/mock_funding_source.dart';
 import 'package:http_retry/http_retry.dart';
+import 'package:fitpay_flutter_sdk/src/mock_kyc.dart';
 
 class API {
   AccessToken _accessToken;
@@ -1036,28 +1037,36 @@ class API {
     throw response.statusCode;
   }
 
-  Future<Application> getApplication(Uri uri) async {
-    var response = await _httpClient.get(uri.toString(), headers: await _headers());
-
-    print("Application ${response.body}");
-
+  Future<Program> getProgramWithKycValues({@required Uri programUri, @required Uri applicationUri}) async {
+    final response = await _httpClient.get(programUri, headers: await _headers());
     if (response.statusCode == 200) {
-      return Application.fromJson(jsonDecode(response.body));
+      Program program = Program.fromJson(jsonDecode(response.body));
+      await updateKycFieldsWithValues(applicationUri, program);
+      return program;
     }
-
-    return null;
+    throw response.statusCode;
   }
 
-  Future<void> patchApplicationStep(Uri uri, int stepNum, dynamic value) async {
-    var body = json.encode([
-      {'op': 'replace',
-      'path': '/kycSteps/$stepNum/value',
-      'value': ((value is DateTime) ? value.toIso8601String() : value) }
-    ]);
+  Future<void> updateKycFieldsWithValues(Uri uri, Program program) async {
+    final response = await _httpClient.get(uri, headers: await _headers());
+    final values = Application.fromJson(jsonDecode(response.body)).values;
+    program.allFields.forEach((field) {
+      if (values.containsKey(field.fieldId) && values[field.fieldId]['value'] != null) {
+        field.value = values[field.fieldId]['value'];
+      }
+    });
+  }
 
-    var response = await http.patch(uri.toString(), body: body, headers: await _headers());
+  Future<void> patchApplication({@required Uri applicationUri, @required Program program}) async {
+    List<JsonPatch> patchBody = program.allFields.map((field) => JsonPatch.fromKycField(field)).toList();
 
-    print("Patching application: ${response.statusCode}: ${response.body}");
+    final resp = await _httpClient.patch(applicationUri, headers: await _headers(), body: jsonEncode(patchBody));
+
+    if (resp.statusCode == 200) {
+      print("Application patch response: ${resp.body}");
+    } else {
+      throw "Error ${resp.statusCode} patching. Message: ${resp.body}";
+    }
   }
 
   Future<Application> submitApplication(Uri uri) async {
